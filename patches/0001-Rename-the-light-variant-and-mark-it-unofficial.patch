@@ -1,0 +1,61 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: hermes-desktop-portable <build@hermes-desktop-portable.invalid>
+Date: Mon, 19 Oct 2026 15:55:07 +0000
+Subject: [PATCH] Rename the light variant and mark it unofficial
+
+hermes-desktop-portable ships upstream's light variant as an unofficial
+distribution. Name it "Hermes Portable", give the Windows executable a name
+without spaces (HermesPortable.exe), and state on the About screen that the
+build is not an official Nous Research release.
+
+diff --git a/apps/desktop/electron/product-identity.test.ts b/apps/desktop/electron/product-identity.test.ts
+index a45fc948e6972db01762eeadee85da91821fdc44..b3d111a27c6ff7816267d438d2fe648beba864ab 100644
+--- a/apps/desktop/electron/product-identity.test.ts
++++ b/apps/desktop/electron/product-identity.test.ts
+@@ -120,7 +120,7 @@ test('nonstable runtime pins userData before the app name can change', async ():
+ test.each([
+   [undefined, 'Hermes', 'hermes', 'latest', 'canary'],
+   ['bundled', 'Hermes Agent', 'hermes', 'latest', 'canary'],
+-  ['light', 'Hermes Light', 'hermes-light', 'light', 'light-canary']
++  ['light', 'Hermes Portable', 'hermes-light', 'light', 'light-canary']
+ ] as const)(
+   '%s separates stable, canary and independent commits',
+   async (
+diff --git a/apps/desktop/product-identity.cjs b/apps/desktop/product-identity.cjs
+index 5e2353eb46f5259698dc5a949a63c61c4cb2feb2..5233ed7215268ef5cae9ed0555e2be4edd320ae6 100644
+--- a/apps/desktop/product-identity.cjs
++++ b/apps/desktop/product-identity.cjs
+@@ -11,7 +11,7 @@
+ const variants = {
+   '': { display: 'Hermes', kebab: 'hermes', pascal: 'Hermes' },
+   light: {
+-    display: 'Hermes Light',
++    display: 'Hermes Portable',
+     kebab: 'hermes-light',
+     pascal: 'HermesLight'
+   },
+@@ -71,7 +71,8 @@ const identity = {
+   channel: store || buildCommit ? null : light ? (canary ? 'light-canary' : 'light') : (canary ? 'canary' : 'latest'),
+   appNamePascal: `${name.pascal}${pascalSuffix}`,
+   artifactNamePascal: name.pascal,
+-  windowsExecutableName: kebabSuffix ? cliName : displayName,
++  // hermes-desktop-portable: no spaces in the executable name.
++  windowsExecutableName: kebabSuffix ? cliName : light ? 'HermesPortable' : displayName,
+   cliName,
+   msixAppIdWithOrg: `NousResearch.${name.pascal}${pascalSuffix}`,
+   ...(store
+diff --git a/apps/desktop/src/components/update-status.tsx b/apps/desktop/src/components/update-status.tsx
+index 2a79ecb245a29d894b1321dbff73d9c62cb6faed..7b717112eb68b7e7e6a225671db640d48f185747 100644
+--- a/apps/desktop/src/components/update-status.tsx
++++ b/apps/desktop/src/components/update-status.tsx
+@@ -227,6 +227,10 @@ export function VersionHero({
+             ? ` · ${Object.entries(u.channels).find(([name]: [string, string]): boolean => name === version.channel)?.[1] ?? version.channel}`
+             : ''}
+         </p>
++        {/* hermes-desktop-portable: this build is not an official release. */}
++        <p className="mt-1 text-xs text-muted-foreground">
++          Unofficial portable, remote-only build. Not affiliated with or endorsed by Nous Research.
++        </p>
+       </div>
+       {(version?.bundleSwapPending || version?.bundleOutOfSync) && (
+         <div className="mx-auto w-full max-w-2xl rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-left text-sm">

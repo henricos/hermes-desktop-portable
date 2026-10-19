@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: hermes-desktop-portable <build@hermes-desktop-portable.invalid>
+Date: Mon, 19 Oct 2026 15:55:07 +0000
+Subject: [PATCH] Point the update notice to this project's releases
+
+The light variant on Windows does not update itself; the About screen says
+updates are managed by the package owner. For hermes-desktop-portable
+the package owner is this project, so name the place to get new versions.
+
+diff --git a/apps/desktop/electron/updater/external.ts b/apps/desktop/electron/updater/external.ts
+index 4d68b08ce2ada681aa22e9a62947c3f4945839b7..220f685f7f41933ce4fb3e0e3ed493d4a718123f 100644
+--- a/apps/desktop/electron/updater/external.ts
++++ b/apps/desktop/electron/updater/external.ts
+@@ -7,7 +7,9 @@ import type { InstallStamp } from '../install-stamp'
+ 
+ import type { UpdaterApplyResultWire, UpdaterStatusWire } from './index'
+ 
+-export const EXTERNAL_UNSUPPORTED_MESSAGE = 'Updates are managed by the package owner outside this app.'
++// hermes-desktop-portable: tell users where new versions of this build live.
++export const EXTERNAL_UNSUPPORTED_MESSAGE =
++  'Unofficial build. Download new versions from github.com/henricos/hermes-desktop-portable/releases.'
+ 
+ export const COMMIT_BUILD_UPDATE_MESSAGE: string =
+   "This build doesn't get updates. Ask the developer who gave it to you for a new build."

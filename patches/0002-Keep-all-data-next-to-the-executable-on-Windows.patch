@@ -1,0 +1,71 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: hermes-desktop-portable <build@hermes-desktop-portable.invalid>
+Date: Mon, 19 Oct 2026 15:55:07 +0000
+Subject: [PATCH] Keep all data next to the executable on Windows
+
+hermes-desktop-portable ships a portable ZIP whose promise is that
+deleting the folder uninstalls it. Upstream writes to %APPDATA%\Hermes,
+%LOCALAPPDATA%\hermes\logs and the HKCU hermes:// handler, and stores
+gateway tokens unencrypted by default.
+
+- Default HERMES_DESKTOP_USER_DATA_DIR to data\ next to the executable in
+  packaged Windows builds, which also moves the Hermes home under it.
+- Default token storage to DPAPI encryption on Windows when no choice has
+  been saved.
+- Skip hermes:// protocol registration on Windows.
+
+diff --git a/apps/desktop/electron/entry.ts b/apps/desktop/electron/entry.ts
+index abed288fe2ac5b5d6d17a715798f1ad15dde4339..d8659e0249ab62f935def6cf90065647cf0ba1c6 100644
+--- a/apps/desktop/electron/entry.ts
++++ b/apps/desktop/electron/entry.ts
+@@ -30,6 +30,15 @@ function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
+   }
+ }
+ 
++// hermes-desktop-portable: portable data. A packaged Windows build keeps
++// all of its state (userData, and the Hermes home that holds logs and
++// config.yaml) in data\ next to the executable, so deleting the unpacked
++// folder removes everything. main.ts and data-paths.mjs already honor this
++// variable; it must be set before main is imported.
++if (process.platform === 'win32' && app.isPackaged && !process.env.HERMES_DESKTOP_USER_DATA_DIR) {
++  process.env.HERMES_DESKTOP_USER_DATA_DIR = path.join(path.dirname(process.execPath), 'data')
++}
++
+ const linux = process.platform === 'linux'
+ const electronFlags = linux ? configuredElectronFlags(process.env) : []
+ 
+diff --git a/apps/desktop/electron/main.ts b/apps/desktop/electron/main.ts
+index 5987d629f2dfa6a9f04b0ad319d0775e24270715..43cb2902d9ef7bafcf1cf1057135ca1f4467b2de 100644
+--- a/apps/desktop/electron/main.ts
++++ b/apps/desktop/electron/main.ts
+@@ -8331,6 +8331,15 @@ let _secretStoragePolicy: SecretStoragePolicy | null = null
+ 
+ function secretStoragePolicy(): SecretStoragePolicy {
+   if (!_secretStoragePolicy) {
++    // hermes-desktop-portable: portable data sits in a plain folder, so
++    // on Windows default to DPAPI encryption until the user chooses otherwise.
++    // DPAPI never prompts, unlike the macOS keychain this default avoids.
++    if (IS_WINDOWS && !fs.existsSync(SECRET_STORAGE_POLICY_PATH)) {
++      setSecretStoragePolicy({ on: true, migrated: true })
++
++      return _secretStoragePolicy!
++    }
++
+     _secretStoragePolicy = readSecretStoragePolicy(_secretStoragePolicyIo)
+   }
+ 
+@@ -19191,6 +19200,14 @@ ipcMain.handle('hermes:deep-link-ready', () => {
+ })
+ 
+ function registerDeepLinkProtocol() {
++  // hermes-desktop-portable: a portable build leaves the registry alone.
++  // hermes:// only serves "Add to Hermes" install links, not sign-in.
++  if (IS_WINDOWS) {
++    rememberLog(`[deeplink] skipped ${HERMES_PROTOCOL}:// registration (portable build)`)
++
++    return
++  }
++
+   try {
+     if (process.defaultApp && process.argv.length >= 2) {
+       // Dev: register with the electron exec path + entry script so the OS can

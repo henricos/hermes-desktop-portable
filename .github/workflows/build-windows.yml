@@ -1,0 +1,149 @@
+# Build the portable Windows ZIP from the pinned upstream plus patches/.
+#
+# - push to main, pull requests, manual runs: build and keep the ZIP as a
+#   workflow artifact.
+# - push of a tag v<upstream>-r<N> (for example v0.22.2-r1): build, then
+#   create a draft GitHub Release with the ZIP and its SHA-256. The
+#   maintainer tests the ZIP and publishes the draft by hand.
+#
+# The job only prepares the runner; scripts/build.sh does the build, exactly
+# as it would on any Windows machine. See docs/build-github-actions.md.
+name: build-windows
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-windows-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      upstream_tag: ${{ steps.version.outputs.upstream_tag }}
+      upstream_commit: ${{ steps.version.outputs.upstream_commit }}
+    steps:
+      - name: Configure Git
+        run: |
+          git config --global core.longpaths true
+          git config --global core.autocrlf false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Resolve version
+        id: version
+        run: |
+          source upstream.lock
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            version="${GITHUB_REF_NAME}"
+            # A release tag must name the pinned upstream: v0.22.2-r1 for v0.22.2.
+            if [[ ! "$version" =~ ^${UPSTREAM_TAG//./\\.}-r[0-9]+$ ]]; then
+              echo "error: tag $version does not match ${UPSTREAM_TAG}-r<N> from upstream.lock" >&2
+              exit 1
+            fi
+          else
+            version="${UPSTREAM_TAG}-dev.${GITHUB_SHA::7}"
+          fi
+          {
+            echo "version=$version"
+            echo "upstream_tag=$UPSTREAM_TAG"
+            echo "upstream_commit=$UPSTREAM_COMMIT"
+          } >> "$GITHUB_OUTPUT"
+          echo "Building $version from upstream $UPSTREAM_TAG ($UPSTREAM_COMMIT)"
+
+      # The toolchain versions come from upstream, so fetch first; build.sh
+      # reuses this checkout.
+      - name: Fetch upstream
+        run: scripts/fetch-upstream.sh
+
+      # Upstream's own CI pins exact Node and npm versions in pm/lock.json, and
+      # its .npmrc sets engine-strict, so an arbitrary npm can fail npm ci.
+      # The runner's preinstalled Node is enough to read the file.
+      - name: Resolve toolchain
+        id: toolchain
+        run: |
+          node -e '
+            const { packages } = require("./upstream/pm/lock.json")
+            console.log(`node=${packages.node.version}`)
+            console.log(`npm=${packages.npm.version}`)
+          ' | tee -a "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ steps.toolchain.outputs.node }}
+          cache: npm
+          cache-dependency-path: upstream/package-lock.json
+
+      - name: Install pinned npm
+        run: |
+          npm install --global "npm@${{ steps.toolchain.outputs.npm }}"
+          echo "node $(node --version), npm $(npm --version)"
+
+      - name: Build
+        run: scripts/build.sh --version "${{ steps.version.outputs.version }}"
+
+      - name: Checksum
+        working-directory: dist
+        run: sha256sum HermesPortable-*.zip | tee SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: HermesPortable-${{ steps.version.outputs.version }}-win-x64
+          path: |
+            dist/HermesPortable-*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: HermesPortable-${{ needs.build.outputs.version }}-win-x64
+          path: dist
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+          UPSTREAM_TAG: ${{ needs.build.outputs.upstream_tag }}
+          UPSTREAM_COMMIT: ${{ needs.build.outputs.upstream_commit }}
+        run: |
+          cat > notes.md <<EOF
+          Built from [Hermes Agent ${UPSTREAM_TAG}](https://github.com/NousResearch/hermes-agent/releases/tag/${UPSTREAM_TAG}) (\`${UPSTREAM_COMMIT}\`) plus this repository's \`patches/\`.
+
+          Unpack the ZIP to a folder you can write to and run \`HermesPortable.exe\`. See the [README](https://github.com/${GITHUB_REPOSITORY}#quick-install) before first use.
+
+          **Unofficial build**, not affiliated with or endorsed by Nous Research.
+          EOF
+          # A rerun after a partial publish replaces the assets instead of failing.
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" dist/HermesPortable-*.zip dist/SHA256SUMS.txt --clobber
+          else
+            gh release create "$VERSION" dist/HermesPortable-*.zip dist/SHA256SUMS.txt \
+              --title "Hermes Desktop Portable $VERSION" \
+              --notes-file notes.md \
+              --verify-tag \
+              --draft
+          fi

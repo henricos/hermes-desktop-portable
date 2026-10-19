@@ -1,0 +1,12 @@
+# Upstream checkout produced by scripts/fetch-upstream.sh
+/upstream/
+
+# Build output
+/dist/
+*.zip
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

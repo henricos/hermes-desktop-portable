@@ -1,0 +1,7 @@
+# Pinned upstream for this build. Sourced by scripts/*.sh.
+# Change it with scripts/bump-upstream.sh, not by hand.
+# Keep KEY="value" quoting: the file must stay valid as both bash and TOML,
+# because the README's upstream badge reads UPSTREAM_TAG from it.
+UPSTREAM_REPO="https://github.com/NousResearch/hermes-agent.git"
+UPSTREAM_TAG="v0.22.2"
+UPSTREAM_COMMIT="d923a5eb487a17c0a68801bba9ef0f56c81040a8"
