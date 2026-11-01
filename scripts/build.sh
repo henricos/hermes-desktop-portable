@@ -5,8 +5,6 @@
 # pins; see docs/build-local.md.
 #
 #   scripts/build.sh [--version v0.22.2-r1]
-#
-# Status: the npm and electron-builder steps have not run on CI yet.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"

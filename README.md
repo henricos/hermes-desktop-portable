@@ -52,7 +52,7 @@ The official Windows download is a bootstrap installer: before the desktop app e
 Two upstream issues describe the gap, and this project treats them differently:
 
 - **A desktop-only install** ([#38519](https://github.com/NousResearch/hermes-agent/issues/38519)): install just the desktop app and connect it to a Hermes that already runs elsewhere. This is what this project solves, by repacking upstream's desktop app as a portable ZIP. Upstream has said a dedicated remote-only package is [not planned for now](https://github.com/NousResearch/hermes-agent/issues/134308).
-- **Protection against local activation** ([#135920](https://github.com/NousResearch/hermes-agent/issues/135920)): the desktop app has actions (a setup choice, repair and fallback buttons, local gateway options) that start a full local install. A repack like this one would ideally block them all. That is a possible later improvement, not a goal: the priority here is to repackage upstream, not to change its behavior. Once the repack itself has proven to work, blocking those actions will be evaluated, and adopted only if it fits in a few patches that stay easy to maintain. Until then, the [warning in Quick Install](#quick-install) tells you which actions to avoid.
+- **Protection against local activation** ([#135920](https://github.com/NousResearch/hermes-agent/issues/135920)): the desktop app has actions (a setup choice, repair and fallback buttons, local gateway options) that start a full local install. Even upstream's remote-only `light` variant runs that install when something asks for a local backend, as the app itself does right after first-run setup. This package refuses the install at its single entry point and hides the setup choice; the remaining local options show an error instead (see [No local install](docs/usage.md#no-local-install)). The priority stays repackaging upstream, so this is kept to a few small patches.
 
 ## Quick Install
 
@@ -62,7 +62,7 @@ Two upstream issues describe the gap, and this project treats them differently:
 4. On the setup screen, choose **Connect to existing Hermes** and enter your gateway's URL and credentials. Your Hermes must be reachable from this machine (LAN, VPN, Tailscale).
 
 > [!WARNING]
-> Never choose **Install Hermes locally**, **Repair**, **Use local gateway**, or a **Local** / **This device** gateway: each one installs a full local Hermes. See [Why this exists](#why-this-exists).
+> Run the same Hermes version on your server as the package was built from (the **Built from** badge above). See [Gateways](docs/usage.md#gateways).
 
 Settings, tokens and logs stay in a `data` folder next to the executable: delete the folder to uninstall, and keep `data` when you upgrade. Details in [Using the package](docs/usage.md).
 

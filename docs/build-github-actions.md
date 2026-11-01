@@ -46,6 +46,8 @@ On a Windows machine with no Hermes Agent installed and no `HERMES_HOME` variabl
 1. Before the first launch, note what is in `%APPDATA%` and `%LOCALAPPDATA%`.
 2. Unpack the ZIP, run `HermesPortable.exe`, connect to a gateway, use the app, and quit it.
 3. Check:
+   - The setup screen offers only **Connect to existing Hermes**, and after connecting the gateway list shows no "This device · unreachable" entry.
+   - `data\hermes-home\logs\desktop.log` has no `[bootstrap]` line other than `REFUSING installer on the light (remote-only) variant`.
    - The About screen shows the unofficial-build notice, and its update card points to this project's releases.
    - Everything the app wrote is under `data\` in the unpacked folder, including `secure-token-storage.json` with `"on":true` (DPAPI-encrypted tokens).
    - Nothing new in `%APPDATA%\Hermes*` or `%LOCALAPPDATA%\hermes*` compared with step 1.

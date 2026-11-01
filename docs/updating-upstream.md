@@ -34,6 +34,24 @@ scripts/refresh-patches.sh  # write the rebased patches back to patches/
 
 Review `git diff patches/` before committing: a rebased patch should do what it did before, against new context.
 
+## If a patch no longer fits
+
+Sometimes upstream has rewritten the code a patch touches, and resolving the conflict line by line would not keep the patch's intent. Rewrite that part of the patch against the new code instead. Work in the `git am` session that stopped:
+
+```bash
+cd upstream
+git am --show-current-patch=raw     # the patch's message, and its diff against the old base
+git checkout HEAD -- <file>         # drop the half-applied file; start from the new upstream code
+```
+
+1. Read the intent: the patch's commit message (one bullet per change), the `hermes-desktop-portable:` comments in the old diff, and the patch's row in [`patches/README.md`](../patches/README.md). Those rows are the guarantees the rewrite must keep.
+2. Find where upstream moved the code. Search the new tree for the identifiers and strings the old diff touched, and see what upstream changed between the two pins: `git log --oneline <old pin>..<new pin> -- <file>` and `git log -S'<identifier>' <old pin>..<new pin>`.
+3. Make the smallest change that restores each guarantee, keeping the `hermes-desktop-portable:` comments, then `git add` and `$G am --continue`.
+4. If upstream now does what the patch did, drop that part, or the whole patch (`$G am --skip`) and its row in `patches/README.md`.
+5. Update the commit message if the change is no longer the same (see [Change or add a patch](#change-or-add-a-patch)), then refresh.
+
+Verify before committing: typecheck and lint the desktop app (`npm run typecheck` and `npm run lint` in `upstream/apps/desktop`, after `npm ci` at `upstream/`), then build on GitHub Actions and run [Testing a package](build-github-actions.md#testing-a-package).
+
 ## Change or add a patch
 
 ```bash
@@ -64,7 +82,9 @@ If the rebase stops on a conflict, fix it, `git add`, and `$G rebase --continue`
 cd .. && scripts/refresh-patches.sh
 ```
 
-`refresh-patches.sh` refuses to run while an `am` or a rebase is unfinished. Never edit a `.patch` file by hand. One concern per patch; the commit message is its documentation (see [`patches/README.md`](../patches/README.md)).
+`refresh-patches.sh` refuses to run while an `am` or a rebase is unfinished. Never edit a `.patch` file by hand.
+
+Always start from `fetch-upstream.sh && apply-patches.sh`, so that you change the pinned source with every patch already applied, never a newer upstream or a stale checkout. Before adding a patch, check which patch already touches each file you change (`grep '^diff --git' patches/*.patch`): no upstream file belongs to two patches, so a change to such a file is a `--fixup` of that patch, and the patch's message and its row in [`patches/README.md`](../patches/README.md) must cover the new change. Keep changes to one-line conditions next to upstream code where you can; reindenting a block makes every later rebase harder.
 
 ## Scripts
 
