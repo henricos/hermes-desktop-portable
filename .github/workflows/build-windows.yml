@@ -93,8 +93,18 @@ jobs:
           npm install --global "npm@${{ steps.toolchain.outputs.npm }}"
           echo "node $(node --version), npm $(npm --version)"
 
+      # The ZIP inside is what users download: a release names it after the
+      # tag, a dev build gets build.sh's default (<upstream tag>-dev). The
+      # commit and platform only name the artifact around it.
       - name: Build
-        run: scripts/build.sh --version "${{ steps.version.outputs.version }}"
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            scripts/build.sh --version "$VERSION"
+          else
+            scripts/build.sh
+          fi
 
       - name: Checksum
         working-directory: dist

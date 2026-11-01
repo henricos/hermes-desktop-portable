@@ -31,7 +31,7 @@ esac
 upstream="$root/upstream"
 app="$upstream/apps/desktop"
 out="$root/dist"
-artifact="HermesPortable-${version}-win-x64.zip"
+artifact="HermesPortable-${version}.zip"
 
 echo "==> Upstream $UPSTREAM_TAG + patches"
 "$root/scripts/fetch-upstream.sh" "$upstream"

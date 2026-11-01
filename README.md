@@ -56,7 +56,7 @@ Two upstream issues describe the gap, and this project treats them differently:
 
 ## Quick Install
 
-1. Download `HermesPortable-<version>-win-x64.zip` from the [latest release](https://github.com/henricos/hermes-desktop-portable/releases/latest).
+1. Download `HermesPortable-<version>.zip` from the [latest release](https://github.com/henricos/hermes-desktop-portable/releases/latest).
 2. Unpack it to a folder of your own, for example `%USERPROFILE%\Apps\HermesPortable`: writable (not under `Program Files`) and not synced by OneDrive.
 3. Run `HermesPortable.exe`. The package is not code-signed, so SmartScreen may warn on first launch.
 4. On the setup screen, choose **Connect to existing Hermes** and enter your gateway's URL and credentials. Your Hermes must be reachable from this machine (LAN, VPN, Tailscale).

@@ -49,11 +49,11 @@ Nothing is installed system-wide; closing the shell undoes the `PATH` change.
 scripts/build.sh
 ```
 
-`build.sh` fetches upstream again (reusing `./upstream`), applies the patches, runs `npm ci`, builds and zips. `--version` is optional and only names the ZIP; it defaults to `<UPSTREAM_TAG>-dev`. Keep `-r<N>` for published releases.
+`build.sh` fetches upstream again (reusing `./upstream`), applies the patches, runs `npm ci`, builds and zips. `--version` is optional and only names the ZIP (`HermesPortable-<version>.zip`); it defaults to `<UPSTREAM_TAG>-dev`. Keep `-r<N>` for published releases.
 
 Output:
 
-- `dist/HermesPortable-v0.22.5-dev-win-x64.zip`, the package;
+- `dist/HermesPortable-v0.22.5-dev.zip`, the package;
 - `upstream/apps/desktop/release/win-unpacked/`, the same app unpacked, ready to run.
 
 `./upstream` and `./dist` are ignored by git. To build a newer Hermes version, update the pin first: see [Updating upstream](updating-upstream.md).

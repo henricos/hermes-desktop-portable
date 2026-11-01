@@ -14,7 +14,7 @@ The workflow `.github/workflows/build-windows.yml` builds the ZIP on a clean `wi
    gh run download <run-id> -R <you>/hermes-desktop-portable -D dist
    ```
 
-3. The artifact is named `HermesPortable-<version>-win-x64` and holds the ZIP and a `SHA256SUMS.txt`. Downloaded from the web page it arrives as a ZIP containing that ZIP; unpack the outer one first.
+3. The artifact is named `HermesPortable-<version>-win-x64` and holds the package, `HermesPortable-<upstream tag>-dev.zip`, and a `SHA256SUMS.txt`. Downloaded from the web page it arrives as a ZIP containing that ZIP; unpack the outer one first. A release instead attaches `HermesPortable-<version>.zip` itself, for example `HermesPortable-v0.22.5-r1.zip`.
 
 Pushes to `main` and pull requests also build it. Artifacts are kept for 30 days and versioned `<upstream tag>-dev.<commit>`, for example `v0.22.5-dev.1a2b3c4`, where the commit is this repository's (for a pull request, GitHub's merge commit). That version only names the artifact; it is not a tag. Pull requests from forks run with a read-only token, and a first-time contributor's run waits for approval.
 
