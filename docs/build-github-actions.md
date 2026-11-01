@@ -45,11 +45,12 @@ On a Windows machine with no Hermes Agent installed and no `HERMES_HOME` variabl
 
 1. Before the first launch, note what is in `%APPDATA%` and `%LOCALAPPDATA%`.
 2. Unpack the ZIP, run `HermesPortable.exe`, connect to a gateway, use the app, and quit it.
-3. Check:
-   - The setup screen offers only **Connect to existing Hermes**, and after connecting the gateway list shows no "This device · unreachable" entry.
-   - `data\hermes-home\logs\desktop.log` has no `[bootstrap]` line other than `REFUSING installer on the light (remote-only) variant`.
-   - The About screen shows the unofficial-build notice, and its update card points to this project's releases.
-   - Everything the app wrote is under `data\` in the unpacked folder, including `secure-token-storage.json` with `"on":true` (DPAPI-encrypted tokens).
-   - Nothing new in `%APPDATA%\Hermes*` or `%LOCALAPPDATA%\hermes*` compared with step 1.
-   - No `HKCU\Software\Classes\hermes` registry key.
-   - No local runtime: no `hermes-agent` checkout, venv, Python, uv or Git.
+3. Check, per [intent](intents.md):
+   - `remote-only`: the setup screen offers only **Connect to existing Hermes**, and after connecting the gateway list shows no "This device · unreachable" entry.
+   - `remote-only`: `data\hermes-home\logs\desktop.log` has no `[bootstrap]` line other than `REFUSING installer on the light (remote-only) variant`.
+   - `remote-only`: no local runtime: no `hermes-agent` checkout, venv, Python, uv or Git.
+   - `identity`, `update-source`: the About screen shows the unofficial-build notice, and its update card points to this project's releases.
+   - `portable-data`, `encrypted-tokens`: everything the app wrote is under `data\` in the unpacked folder, including `secure-token-storage.json` with `"on":true` (DPAPI-encrypted tokens).
+   - `portable-data`: nothing new in `%APPDATA%` or `%LOCALAPPDATA%` compared with step 1 (for example, no `Hermes*` or `hermes*` folder).
+   - `portable-data`: no `HKCU\Software\Classes\hermes` registry key.
+   - `portable-data`: after deleting the folder and unpacking a new one, the app opens on the setup screen with no saved gateway. (The system browser may still remember an OIDC sign-in; that is the browser's, not the app's.)

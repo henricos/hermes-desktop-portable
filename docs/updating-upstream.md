@@ -12,11 +12,49 @@ After `npm ci` has run in `./upstream`, upstream's lefthook pre-commit hook runs
 
 ## Bump to a new Hermes release
 
+A bump is a review of [intents](intents.md), not only a re-apply: a patch that still applies may no longer be needed, may use a mechanism upstream replaced, or may miss a new path that breaks its intent.
+
+### 1. Review the new upstream before applying
+
+Fetch both pins without touching `upstream.lock`:
+
+```bash
+cd upstream
+git fetch -q --depth=500 origin tag <old tag> tag <new tag>
+git diff --stat <old tag> <new tag> -- $(grep -h '^diff --git' ../patches/*.patch | awk '{print substr($3,3)}' | sort -u)
+git diff <old tag> <new tag> -- apps/desktop/electron/main.ts | less     # and the other files listed
+```
+
+Then, for each intent in [`intents.md`](intents.md):
+
+1. Run its **Revisit on bump** checks against the new tag (`git grep <pattern> <new tag> -- apps/desktop`).
+2. Check its **Obsolete when** condition: did upstream start doing it itself?
+3. Decide: keep, change the mechanism (a new upstream switch, code that moved), drop, or extend (a new path that breaks the promise).
+
+Also list the switches upstream honors and compare them with the old tag. A new one can replace a code change ("upstream switches first" in [`patches/README.md`](../patches/README.md)):
+
+```bash
+diff <(git grep -ohE 'HERMES_DESKTOP_[A-Z_]+' <old tag> -- apps/desktop/electron | sort -u) \
+     <(git grep -ohE 'HERMES_DESKTOP_[A-Z_]+' <new tag> -- apps/desktop/electron | sort -u)
+```
+
+Write down the decisions; they go into the bump commit's message.
+
+### 2. Apply
+
 ```bash
 scripts/bump-upstream.sh v0.23.0
 ```
 
-This repoints `upstream.lock` (stable `vX.Y.Z` release tags only), fetches the new commit into `./upstream`, applies `patches/` and re-exports them against the new base. If it succeeds, review `git diff patches/` and commit `upstream.lock` and `patches/` together. The release revision restarts at `-r1` (see [Releases](build-github-actions.md#releases)).
+This repoints `upstream.lock` (stable `vX.Y.Z` release tags only), fetches the new commit into `./upstream`, applies `patches/` and re-exports them against the new base. If a patch fails, see [If a patch fails](#if-a-patch-fails). Carry out the decisions from step 1 as patch changes (see [Change or add a patch](#change-or-add-a-patch)).
+
+### 3. Verify every intent
+
+- Each intent's marker still sits at each place its **How** names: `git grep -n 'hermes-desktop-portable(<id>)' -- apps/desktop` in `./upstream`.
+- Typecheck, lint and test (`npm run typecheck`, `npm run lint`, and the tests of the files the patches touch, in `upstream/apps/desktop` after `npm ci` at `upstream/`).
+- Update [`intents.md`](intents.md), [`patches/README.md`](../patches/README.md), [`usage.md`](usage.md) and the [test checklist](build-github-actions.md#testing-a-package) when a mechanism or a promise changed.
+
+Review `git diff patches/` and commit `upstream.lock`, `patches/` and the docs together. Build, and run [Testing a package](build-github-actions.md#testing-a-package): each check there names the intent it proves. The release revision restarts at `-r1` (see [Releases](build-github-actions.md#releases)).
 
 ## If a patch fails
 

@@ -8,51 +8,55 @@ distribution. Name it "Hermes Portable", give the Windows executable a name
 without spaces (HermesPortable.exe), and state on the About screen that the
 build is not an official Nous Research release.
 
+Intents: identity
+
 diff --git a/apps/desktop/electron/product-identity.test.ts b/apps/desktop/electron/product-identity.test.ts
-index a45fc948e6972db01762eeadee85da91821fdc44..b3d111a27c6ff7816267d438d2fe648beba864ab 100644
+index a45fc948e6972db01762eeadee85da91821fdc44..37c0832a8fc4290523e00e89dfd583fa86516fce 100644
 --- a/apps/desktop/electron/product-identity.test.ts
 +++ b/apps/desktop/electron/product-identity.test.ts
-@@ -120,7 +120,7 @@ test('nonstable runtime pins userData before the app name can change', async ():
+@@ -120,7 +120,8 @@ test('nonstable runtime pins userData before the app name can change', async ():
  test.each([
    [undefined, 'Hermes', 'hermes', 'latest', 'canary'],
    ['bundled', 'Hermes Agent', 'hermes', 'latest', 'canary'],
 -  ['light', 'Hermes Light', 'hermes-light', 'light', 'light-canary']
++  // hermes-desktop-portable(identity): the light variant is named Hermes Portable.
 +  ['light', 'Hermes Portable', 'hermes-light', 'light', 'light-canary']
  ] as const)(
    '%s separates stable, canary and independent commits',
    async (
 diff --git a/apps/desktop/product-identity.cjs b/apps/desktop/product-identity.cjs
-index 5e2353eb46f5259698dc5a949a63c61c4cb2feb2..5233ed7215268ef5cae9ed0555e2be4edd320ae6 100644
+index 5e2353eb46f5259698dc5a949a63c61c4cb2feb2..662861e25a444add9c651534a9b8f3270aa24b7d 100644
 --- a/apps/desktop/product-identity.cjs
 +++ b/apps/desktop/product-identity.cjs
-@@ -11,7 +11,7 @@
+@@ -11,7 +11,8 @@
  const variants = {
    '': { display: 'Hermes', kebab: 'hermes', pascal: 'Hermes' },
    light: {
 -    display: 'Hermes Light',
++    // hermes-desktop-portable(identity): this project's name for the light variant.
 +    display: 'Hermes Portable',
      kebab: 'hermes-light',
      pascal: 'HermesLight'
    },
-@@ -71,7 +71,8 @@ const identity = {
+@@ -71,7 +72,8 @@ const identity = {
    channel: store || buildCommit ? null : light ? (canary ? 'light-canary' : 'light') : (canary ? 'canary' : 'latest'),
    appNamePascal: `${name.pascal}${pascalSuffix}`,
    artifactNamePascal: name.pascal,
 -  windowsExecutableName: kebabSuffix ? cliName : displayName,
-+  // hermes-desktop-portable: no spaces in the executable name.
++  // hermes-desktop-portable(identity): no spaces in the executable name.
 +  windowsExecutableName: kebabSuffix ? cliName : light ? 'HermesPortable' : displayName,
    cliName,
    msixAppIdWithOrg: `NousResearch.${name.pascal}${pascalSuffix}`,
    ...(store
 diff --git a/apps/desktop/src/components/update-status.tsx b/apps/desktop/src/components/update-status.tsx
-index 51abbdfe3ff7a2862b08bcacf259c9d4ce877a3e..e4169cff0390caf5505ed1bfc2f81bd02a843b6e 100644
+index 51abbdfe3ff7a2862b08bcacf259c9d4ce877a3e..29d6de297180832831697f45c9ebfa5edbc03db2 100644
 --- a/apps/desktop/src/components/update-status.tsx
 +++ b/apps/desktop/src/components/update-status.tsx
 @@ -247,6 +247,10 @@ export function VersionHero({
              ? ` · ${Object.entries(u.channels).find(([name]: [string, string]): boolean => name === version.channel)?.[1] ?? version.channel}`
              : ''}
          </p>
-+        {/* hermes-desktop-portable: this build is not an official release. */}
++        {/* hermes-desktop-portable(identity): this build is not an official release. */}
 +        <p className="mt-1 text-xs text-muted-foreground">
 +          Unofficial portable, remote-only build. Not affiliated with or endorsed by Nous Research.
 +        </p>
