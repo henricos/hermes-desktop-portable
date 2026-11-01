@@ -33,7 +33,7 @@ The app is upstream's own code, repackaged. A few small, readable [patches](patc
 | Hermes Agent already installed on this machine | The [official installer](https://hermes-agent.nousresearch.com/desktop), which brings the desktop and builds on the existing install |
 
 > [!CAUTION]
-> **Do not use this package on a machine that already has Hermes Agent installed.** "Portable" is about how it ships, not what it contains: the agent is not inside, and the package expects it to live elsewhere. With a local Hermes present, the app may silently use it instead of asking for a gateway, and a `HERMES_HOME` environment variable left by that install makes the app use that folder instead of its own `data` folder.
+> "Portable" is about how it ships, not what it contains: the agent is not inside, and the package expects it to live elsewhere. A Hermes Agent already installed on the same machine is ignored, and so is a `HERMES_HOME` environment variable left by that install: the package always uses its own `data` folder and a remote gateway.
 
 <table>
 <tr><td><b>Client only, by design</b></td><td>The desktop UI runs locally; tools, files, sessions, memory and automations stay on your remote Hermes.</td></tr>
@@ -80,7 +80,7 @@ docs/                  how to use the package, build it and update upstream
 
 On every build, a `windows-latest` runner checks out the pinned upstream commit, applies `patches/` in order, builds `apps/desktop` with upstream's remote-only `light` variant and packages the unpacked app as a ZIP.
 
-Package versions follow upstream: `v0.22.2-r1` is the first revision of this project built from Hermes `v0.22.2`. The **Built from** badge above reads the pinned tag straight from [`upstream.lock`](upstream.lock).
+Package versions follow upstream: `v0.22.5-r1` is the first revision of this project built from Hermes `v0.22.5`. The **Built from** badge above reads the pinned tag straight from [`upstream.lock`](upstream.lock).
 
 ### Design choices
 

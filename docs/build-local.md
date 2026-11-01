@@ -30,13 +30,13 @@ Upstream pins exact versions, and its `.npmrc` sets `engine-strict`, so another 
 scripts/fetch-upstream.sh    # pinned upstream into ./upstream
 ```
 
-Open `upstream/pm/lock.json` and read `packages.node.version` and `packages.npm.version` (for v0.22.2: Node 26.7.0, npm 12.0.2). Then, for this Git Bash session:
+Open `upstream/pm/lock.json` and read `packages.node.version` and `packages.npm.version` (for v0.22.5: Node 26.12.1, npm 12.0.2). Then, for this Git Bash session:
 
-1. Download the Node `win-x64` ZIP of that version from [nodejs.org](https://nodejs.org/dist/) and unpack it, for example to `C:\tools\node-v26.7.0-win-x64`.
+1. Download the Node `win-x64` ZIP of that version from [nodejs.org](https://nodejs.org/dist/) and unpack it, for example to `C:\tools\node-v26.12.1-win-x64`.
 2. Put it on `PATH` and install the pinned npm into it:
 
 ```bash
-export PATH="/c/tools/node-v26.7.0-win-x64:$PATH"
+export PATH="/c/tools/node-v26.12.1-win-x64:$PATH"
 npm install --global npm@12.0.2
 node --version && npm --version
 ```
@@ -53,7 +53,7 @@ scripts/build.sh
 
 Output:
 
-- `dist/HermesPortable-v0.22.2-dev-win-x64.zip`, the package;
+- `dist/HermesPortable-v0.22.5-dev-win-x64.zip`, the package;
 - `upstream/apps/desktop/release/win-unpacked/`, the same app unpacked, ready to run.
 
 `./upstream` and `./dist` are ignored by git. To build a newer Hermes version, update the pin first: see [Updating upstream](updating-upstream.md).

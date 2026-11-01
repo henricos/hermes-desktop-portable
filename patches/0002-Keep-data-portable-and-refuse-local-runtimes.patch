@@ -5,7 +5,9 @@ Subject: [PATCH] Keep data portable and refuse local runtimes
 
 hermes-desktop-portable ships a portable ZIP of upstream's light variant.
 Its promises are that deleting the folder uninstalls it, and that it only
-connects to Hermes gateways running elsewhere.
+connects to Hermes gateways running elsewhere. Where upstream already has
+a switch for a behavior, entry.ts sets it before main is imported; code
+changes are kept for what no switch covers.
 
 Portable data. Upstream writes to %APPDATA%\Hermes,
 %LOCALAPPDATA%\hermes\logs and the HKCU hermes:// handler, and stores
@@ -13,50 +15,60 @@ gateway tokens unencrypted by default.
 
 - Default HERMES_DESKTOP_USER_DATA_DIR to data\ next to the executable in
   packaged Windows builds, which also moves the Hermes home under it.
+- Pin HERMES_HOME to data\hermes-home, because an inherited HERMES_HOME
+  (left by an official install) takes precedence over data\.
+- Set HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION so no hermes:// handler
+  is registered.
 - Do not create the default %APPDATA%\Hermes folder while applying the
-  product identity when that override is set.
+  product identity when HERMES_DESKTOP_USER_DATA_DIR is set.
 - Default token storage to DPAPI encryption on Windows when no choice has
   been saved.
-- Skip hermes:// protocol registration on Windows.
 
-Remote-only. Upstream's light variant ships no runtime but still runs the
-first-launch bootstrap when anything asks for a local backend, such as the
-registry's mandatory "This device" entry right after first-run setup. The
-bootstrap then fetches install.ps1 for the build commit, which for this
-project is the patched upstream HEAD and does not exist on GitHub (404).
-Its failure is latched globally, so the remote primary stops working too
-until the app restarts.
+Remote-only. Upstream's light variant ships no runtime, but it still uses
+a Hermes installed on the machine, and it runs the first-launch bootstrap
+when anything asks for a local backend, such as the registry's mandatory
+"This device" entry right after first-run setup. The bootstrap fetches
+install.ps1 for the build commit, which for this project is the patched
+upstream HEAD and does not exist on GitHub (404). Its failure is latched
+globally, so the remote primary stops working too until the app restarts.
 
+- Set HERMES_DESKTOP_IGNORE_EXISTING so an installed runtime is never used.
 - Refuse the bootstrap on the light variant without setting that latch.
 - Never enumerate "This device" in the gateway roster.
 - Tell the setup screen it runs on the light variant, so it can hide the
   local install option.
 
 diff --git a/apps/desktop/electron/entry.ts b/apps/desktop/electron/entry.ts
-index abed288fe2ac5b5d6d17a715798f1ad15dde4339..d8659e0249ab62f935def6cf90065647cf0ba1c6 100644
+index abed288fe2ac5b5d6d17a715798f1ad15dde4339..5cb302279a34c2790597d997a30063fdc5d3a96c 100644
 --- a/apps/desktop/electron/entry.ts
 +++ b/apps/desktop/electron/entry.ts
-@@ -30,6 +30,15 @@ function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
+@@ -30,6 +30,21 @@ function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
    }
  }
  
-+// hermes-desktop-portable: portable data. A packaged Windows build keeps
-+// all of its state (userData, and the Hermes home that holds logs and
-+// config.yaml) in data\ next to the executable, so deleting the unpacked
-+// folder removes everything. main.ts and data-paths.mjs already honor this
-+// variable; it must be set before main is imported.
-+if (process.platform === 'win32' && app.isPackaged && !process.env.HERMES_DESKTOP_USER_DATA_DIR) {
-+  process.env.HERMES_DESKTOP_USER_DATA_DIR = path.join(path.dirname(process.execPath), 'data')
++// hermes-desktop-portable: portable, remote-only policy, through switches
++// upstream already honors. They must be set before main is imported.
++// - All state (userData, and the Hermes home that holds logs and
++//   config.yaml) lives in data\ next to the executable, so deleting the
++//   unpacked folder removes everything. HERMES_HOME is pinned too, because
++//   an inherited one (left by an official install) would win over data\.
++// - No hermes:// handler in the registry.
++// - Never use a Hermes runtime installed on this machine.
++if (process.platform === 'win32' && app.isPackaged) {
++  process.env.HERMES_DESKTOP_USER_DATA_DIR ||= path.join(path.dirname(process.execPath), 'data')
++  process.env.HERMES_HOME = path.join(process.env.HERMES_DESKTOP_USER_DATA_DIR, 'hermes-home')
++  process.env.HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION = '1'
++  process.env.HERMES_DESKTOP_IGNORE_EXISTING = '1'
 +}
 +
  const linux = process.platform === 'linux'
  const electronFlags = linux ? configuredElectronFlags(process.env) : []
  
 diff --git a/apps/desktop/electron/main.ts b/apps/desktop/electron/main.ts
-index 5987d629f2dfa6a9f04b0ad319d0775e24270715..9614bc049bd6710cfb605d195fa19d80015eb334 100644
+index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..df67d1347d1f57bc4844f75b7a79c399046af417 100644
 --- a/apps/desktop/electron/main.ts
 +++ b/apps/desktop/electron/main.ts
-@@ -2760,7 +2760,9 @@ function broadcastBootstrapEvent(ev) {
+@@ -2549,7 +2549,9 @@ function broadcastBootstrapEvent(ev) {
            platform: ev.platform,
            activeRoot: ev.activeRoot,
            local: ev.local || 'none',
@@ -67,7 +79,7 @@ index 5987d629f2dfa6a9f04b0ad319d0775e24270715..9614bc049bd6710cfb605d195fa19d80
          }
        : null
      bootstrapState.unsupportedPlatform = null
-@@ -2806,7 +2808,9 @@ function promptFirstRunSetupChoice(backend) {
+@@ -2595,7 +2597,9 @@ function promptFirstRunSetupChoice(backend) {
      platform: backend.platform || process.platform,
      activeRoot: backend.activeRoot || ACTIVE_HERMES_ROOT,
      local: backend.local || 'none',
@@ -78,7 +90,7 @@ index 5987d629f2dfa6a9f04b0ad319d0775e24270715..9614bc049bd6710cfb605d195fa19d80
    })
  }
  
-@@ -5457,6 +5461,19 @@ async function ensureRuntime(
+@@ -5123,6 +5127,19 @@ async function ensureRuntime(
    // will rewire startup to spawn the window first and route bootstrap events
    // to a renderer-side install overlay.
    //
@@ -98,7 +110,7 @@ index 5987d629f2dfa6a9f04b0ad319d0775e24270715..9614bc049bd6710cfb605d195fa19d80
    // The artifact kind forbids bootstrap even when a caller requests repair.
    if (backend.kind === 'bootstrap-needed' && installShape() === 'bundled') {
      rememberLog('[bootstrap] REFUSING installer on a bundled install; payload missing or damaged — reinstall the app')
-@@ -8331,6 +8348,15 @@ let _secretStoragePolicy: SecretStoragePolicy | null = null
+@@ -7915,6 +7932,15 @@ let _secretStoragePolicy: SecretStoragePolicy | null = null
  
  function secretStoragePolicy(): SecretStoragePolicy {
    if (!_secretStoragePolicy) {
@@ -114,7 +126,7 @@ index 5987d629f2dfa6a9f04b0ad319d0775e24270715..9614bc049bd6710cfb605d195fa19d80
      _secretStoragePolicy = readSecretStoragePolicy(_secretStoragePolicyIo)
    }
  
-@@ -16422,7 +16448,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
+@@ -15001,7 +15027,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
                  profileRemoteOverride: Boolean(profileHasRemoteOverride(primaryProfileKey()))
                })
  
@@ -125,21 +137,6 @@ index 5987d629f2dfa6a9f04b0ad319d0775e24270715..9614bc049bd6710cfb605d195fa19d80
                  return { connection, profiles: null, error: 'connect-on-demand' }
                }
              }
-@@ -19191,6 +19219,14 @@ ipcMain.handle('hermes:deep-link-ready', () => {
- })
- 
- function registerDeepLinkProtocol() {
-+  // hermes-desktop-portable: a portable build leaves the registry alone.
-+  // hermes:// only serves "Add to Hermes" install links, not sign-in.
-+  if (IS_WINDOWS) {
-+    rememberLog(`[deeplink] skipped ${HERMES_PROTOCOL}:// registration (portable build)`)
-+
-+    return
-+  }
-+
-   try {
-     if (process.defaultApp && process.argv.length >= 2) {
-       // Dev: register with the electron exec path + entry script so the OS can
 diff --git a/apps/desktop/electron/product-identity.ts b/apps/desktop/electron/product-identity.ts
 index 8ca5f6cf1206550dc50ecdcdea68fbe6e5854a36..0aacef9e974356cf9bc321ea2bc3e271b8250aae 100644
 --- a/apps/desktop/electron/product-identity.ts

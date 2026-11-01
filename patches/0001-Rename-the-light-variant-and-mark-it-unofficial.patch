@@ -45,10 +45,10 @@ index 5e2353eb46f5259698dc5a949a63c61c4cb2feb2..5233ed7215268ef5cae9ed0555e2be4e
    msixAppIdWithOrg: `NousResearch.${name.pascal}${pascalSuffix}`,
    ...(store
 diff --git a/apps/desktop/src/components/update-status.tsx b/apps/desktop/src/components/update-status.tsx
-index 2a79ecb245a29d894b1321dbff73d9c62cb6faed..7b717112eb68b7e7e6a225671db640d48f185747 100644
+index 51abbdfe3ff7a2862b08bcacf259c9d4ce877a3e..e4169cff0390caf5505ed1bfc2f81bd02a843b6e 100644
 --- a/apps/desktop/src/components/update-status.tsx
 +++ b/apps/desktop/src/components/update-status.tsx
-@@ -227,6 +227,10 @@ export function VersionHero({
+@@ -247,6 +247,10 @@ export function VersionHero({
              ? ` · ${Object.entries(u.channels).find(([name]: [string, string]): boolean => name === version.channel)?.[1] ?? version.channel}`
              : ''}
          </p>

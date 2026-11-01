@@ -14,7 +14,7 @@ Keep your `data` folder. Either extract the new ZIP over the existing folder, or
 
 Your Hermes must expose its gateway to this machine, for example over your LAN, a VPN or Tailscale; see the upstream [documentation](https://hermes-agent.nousresearch.com/docs/) for gateway setup. You can add or change gateways later under **Settings → Gateways**.
 
-Run the same Hermes version on the server as the package was built from: `v0.22.2-r1` needs Hermes `v0.22.2` (the **Built from** badge in the README shows the current one). Upgrade the server whenever you upgrade the package. The desktop and the gateway speak a protocol that changes between releases, and a mismatch fails on ordinary use, for example every prompt failing with `invalid params for prompt.submit: ... Extra inputs are not permitted` and a hint to run `hermes update`.
+Run the same Hermes version on the server as the package was built from: `v0.22.5-r1` needs Hermes `v0.22.5` (the **Built from** badge in the README shows the current one). Upgrade the server whenever you upgrade the package. The desktop and the gateway speak a protocol that changes between releases, and a mismatch fails on ordinary use, for example every prompt failing with `invalid params for prompt.submit: ... Extra inputs are not permitted` and a hint to run `hermes update`.
 
 ## No local install
 

@@ -2,7 +2,7 @@
 #
 # - push to main, pull requests, manual runs: build and keep the ZIP as a
 #   workflow artifact.
-# - push of a tag v<upstream>-r<N> (for example v0.22.2-r1): build, then
+# - push of a tag v<upstream>-r<N> (for example v0.22.5-r1): build, then
 #   create a draft GitHub Release with the ZIP and its SHA-256. The
 #   maintainer tests the ZIP and publishes the draft by hand.
 #
@@ -50,7 +50,7 @@ jobs:
           source upstream.lock
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             version="${GITHUB_REF_NAME}"
-            # A release tag must name the pinned upstream: v0.22.2-r1 for v0.22.2.
+            # A release tag must name the pinned upstream: v0.22.5-r1 for v0.22.5.
             if [[ ! "$version" =~ ^${UPSTREAM_TAG//./\\.}-r[0-9]+$ ]]; then
               echo "error: tag $version does not match ${UPSTREAM_TAG}-r<N> from upstream.lock" >&2
               exit 1

@@ -4,7 +4,7 @@
 # as is. It must run on Windows (Git Bash), with the Node version upstream
 # pins; see docs/build-local.md.
 #
-#   scripts/build.sh [--version v0.22.2-r1]
+#   scripts/build.sh [--version v0.22.5-r1]
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
