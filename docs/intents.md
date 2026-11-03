@@ -13,7 +13,7 @@ Every intent below lists:
 
 ## `portable-data`: nothing outside the unpacked folder
 
-**Promise.** Settings, gateway tokens and logs live in `data\` next to `HermesPortable.exe`. The app creates nothing in `%APPDATA%` or `%LOCALAPPDATA%` and registers nothing in the registry, so deleting the folder uninstalls it. Entries that Windows itself writes for any executable (`MuiCache`, Compatibility Assistant, per-app audio settings) are out of scope.
+**Promise.** Settings, gateway tokens and logs live in `data\` next to `HermesPortable.exe`. Once the app has quit, nothing it created is left in `%APPDATA%` or `%LOCALAPPDATA%`, and it registers nothing in the registry, so deleting the folder uninstalls it. Entries that Windows itself writes for any executable (`MuiCache`, Compatibility Assistant, per-app audio settings) are out of scope.
 
 **How.**
 
@@ -21,6 +21,8 @@ Every intent below lists:
 - `entry.ts` pins `HERMES_HOME` to `data\hermes-home`: an inherited `HERMES_HOME` takes precedence over `HERMES_DESKTOP_USER_DATA_DIR` in `resolveDesktopHermesHome` (`electron/data-paths.mjs`).
 - `entry.ts` sets `HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION=1`: no `HKCU\Software\Classes\hermes`.
 - `entry.ts` also applies `userData` itself before main is imported, because modules main imports read it as they load (for example the link-preview favicon cache in `link-metadata.ts`), and on quit removes Electron's default folder (`%APPDATA%\Hermes`, from the package's `productName`) while it is empty.
+
+**Known gaps.** Electron creates an empty `%APPDATA%\Hermes` at startup, before any of the app's code runs; it exists while the app runs and is removed on quit, but stays behind if the process is killed. Avoiding it entirely would take a different package `productName` or an Electron change, and would change the app's default name for no user-visible gain.
 
 **Revisit on bump.** Anything new that writes to a fixed location before or regardless of `userData`: module-level `app.getPath(` calls in files main imports, `app.getPath(` calls for `appData`, `temp` or `home`, `mkdirSync` near startup, registry writes (`setAsDefaultProtocolClient`, `reg add`, `setLoginItemSettings`, jump lists, notification registration). Check how the Hermes home is resolved in `data-paths.mjs`.
 
@@ -51,13 +53,15 @@ Every intent below lists:
 
 **Revisit on bump.** Every caller of `runBootstrap` and `ensureRuntime`, and any new path that spawns a local backend or downloads `install.ps1` / `install.sh`. Whether the `light` variant still means "no runtime" (`isLightVariant()`, the install stamp's `payload`). Whether the failure latch (`latchedBootFailure()`) still exists. New local options in the renderer (setup, connection errors, Settings → Gateways).
 
-**Obsolete when.** Upstream's light variant blocks local runtimes itself ([#135920](https://github.com/NousResearch/hermes-agent/issues/135920)). A pull request upstream for the bootstrap refusal is the way to get there.
+**Obsolete when.** Upstream's light variant blocks local runtimes itself ([#135920](https://github.com/NousResearch/hermes-agent/issues/135920)).
 
 ## `identity`: clearly an unofficial build
 
 **Promise.** The app is named "Hermes Portable", the executable is `HermesPortable.exe` (no spaces), and the About screen is headed "Hermes Portable", says it is an unofficial build not affiliated with Nous Research, and links to the upstream commit it was built from. Other upstream strings that say "Hermes Desktop" are kept: the package is a repack of Hermes Desktop.
 
 **How.** `product-identity.cjs` names the light variant and its executable; `product-identity.test.ts` follows the name; `src/i18n/en.ts` heads About with the name (English only; other languages keep "Hermes"); `update-status.tsx` shows the notice. About links its commit to the pinned upstream commit, because `scripts/build.sh` records that commit in the build stamp instead of the patched one.
+
+**Known gaps.** The executable's file metadata (company, description) still names Nous Research, as Windows shows in the file's properties; it comes from upstream's executable-identity step. Other languages than English keep "Hermes" as the About heading.
 
 **Revisit on bump.** How the product identity is derived (`product-identity.cjs`), and where About renders the version block.
 

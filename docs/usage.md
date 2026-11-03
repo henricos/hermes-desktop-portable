@@ -4,6 +4,10 @@
 
 Everything the app keeps (settings, gateway tokens, logs) lives in a `data` folder next to `HermesPortable.exe`. The app is built to leave `%APPDATA%`, `%LOCALAPPDATA%` and the registry alone, so deleting the unpacked folder uninstalls it; this is checked before each release (see [Testing a package](build-github-actions.md#testing-a-package)).
 
+One exception you may notice: while the app runs, an empty `%APPDATA%\Hermes` folder exists. Electron creates it at startup, before the app can redirect it; nothing is written there, and the app removes it when it quits. If the app is killed instead (Task Manager, a crash), the empty folder stays behind; delete it by hand.
+
+Windows itself remembers every program you run (for example in the `MuiCache` and Compatibility Assistant registry keys, or per-app audio settings). Those entries hold the executable's path, not your settings or tokens, and are not the app's to remove.
+
 Gateway tokens are encrypted with Windows DPAPI, so a copied folder does not carry usable credentials to another Windows account: you enter the token again there.
 
 ## Upgrading
