@@ -80,7 +80,7 @@ docs/                  how to use the package, build it and update upstream
 
 On every build, a `windows-latest` runner checks out the pinned upstream commit, applies `patches/` in order, builds `apps/desktop` with upstream's remote-only `light` variant and packages the unpacked app as a ZIP.
 
-Package versions follow upstream: `v0.22.5-r1` is the first revision of this project built from Hermes `v0.22.5`. The **Built from** badge above reads the pinned tag straight from [`upstream.lock`](upstream.lock).
+Package versions follow upstream: `v0.22.6-r1` is the first revision of this project built from Hermes `v0.22.6`. The **Built from** badge above reads the pinned tag straight from [`upstream.lock`](upstream.lock).
 
 ### Design choices
 

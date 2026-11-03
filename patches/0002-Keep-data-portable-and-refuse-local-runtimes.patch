@@ -45,7 +45,7 @@ working too until the app restarts.
 Intents: portable-data, encrypted-tokens, remote-only
 
 diff --git a/apps/desktop/electron/entry.ts b/apps/desktop/electron/entry.ts
-index abed288fe2ac5b5d6d17a715798f1ad15dde4339..b40b7b36f939c70aefe762d2dc2f8c4ef76aa126 100644
+index 115433928d8f15a24d264bb4ca1854278f8f6057..32966c5aa9d98b85d50a76666555275565b75c14 100644
 --- a/apps/desktop/electron/entry.ts
 +++ b/apps/desktop/electron/entry.ts
 @@ -1,4 +1,4 @@
@@ -54,7 +54,7 @@ index abed288fe2ac5b5d6d17a715798f1ad15dde4339..b40b7b36f939c70aefe762d2dc2f8c4e
  import os from 'node:os'
  import path from 'node:path'
  
-@@ -30,6 +30,37 @@ function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
+@@ -47,6 +47,37 @@ function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
    }
  }
  
@@ -93,10 +93,10 @@ index abed288fe2ac5b5d6d17a715798f1ad15dde4339..b40b7b36f939c70aefe762d2dc2f8c4e
  const electronFlags = linux ? configuredElectronFlags(process.env) : []
  
 diff --git a/apps/desktop/electron/main.ts b/apps/desktop/electron/main.ts
-index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..290be2176d0d202aed7184189c053d8f99410c64 100644
+index 4ed1fe4d117797419c4f095c17e81bbe922165db..ec641f7668571c6e02ca0e1ccb51aa7e598c9a74 100644
 --- a/apps/desktop/electron/main.ts
 +++ b/apps/desktop/electron/main.ts
-@@ -2549,7 +2549,9 @@ function broadcastBootstrapEvent(ev) {
+@@ -2521,7 +2521,9 @@ function broadcastBootstrapEvent(ev) {
            platform: ev.platform,
            activeRoot: ev.activeRoot,
            local: ev.local || 'none',
@@ -107,7 +107,7 @@ index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..290be2176d0d202aed7184189c053d8f
          }
        : null
      bootstrapState.unsupportedPlatform = null
-@@ -2595,7 +2597,9 @@ function promptFirstRunSetupChoice(backend) {
+@@ -2567,7 +2569,9 @@ function promptFirstRunSetupChoice(backend) {
      platform: backend.platform || process.platform,
      activeRoot: backend.activeRoot || ACTIVE_HERMES_ROOT,
      local: backend.local || 'none',
@@ -118,7 +118,7 @@ index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..290be2176d0d202aed7184189c053d8f
    })
  }
  
-@@ -5123,6 +5127,19 @@ async function ensureRuntime(
+@@ -5065,6 +5069,19 @@ async function ensureRuntime(
    // will rewire startup to spawn the window first and route bootstrap events
    // to a renderer-side install overlay.
    //
@@ -138,7 +138,7 @@ index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..290be2176d0d202aed7184189c053d8f
    // The artifact kind forbids bootstrap even when a caller requests repair.
    if (backend.kind === 'bootstrap-needed' && installShape() === 'bundled') {
      rememberLog('[bootstrap] REFUSING installer on a bundled install; payload missing or damaged — reinstall the app')
-@@ -7915,6 +7932,15 @@ let _secretStoragePolicy: SecretStoragePolicy | null = null
+@@ -7846,6 +7863,15 @@ let _secretStoragePolicy: SecretStoragePolicy | null = null
  
  function secretStoragePolicy(): SecretStoragePolicy {
    if (!_secretStoragePolicy) {
@@ -154,7 +154,7 @@ index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..290be2176d0d202aed7184189c053d8f
      _secretStoragePolicy = readSecretStoragePolicy(_secretStoragePolicyIo)
    }
  
-@@ -14958,7 +14984,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
+@@ -14853,7 +14879,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
  
    return withoutInteractiveOauthLogin(() =>
      Promise.all(

@@ -54,7 +54,7 @@ index 5e2353eb46f5259698dc5a949a63c61c4cb2feb2..662861e25a444add9c651534a9b8f327
    msixAppIdWithOrg: `NousResearch.${name.pascal}${pascalSuffix}`,
    ...(store
 diff --git a/apps/desktop/src/components/update-status.tsx b/apps/desktop/src/components/update-status.tsx
-index 51abbdfe3ff7a2862b08bcacf259c9d4ce877a3e..29d6de297180832831697f45c9ebfa5edbc03db2 100644
+index 69813455d3731f1f78870a7fea69b0ec2b49a54c..f73416dc28db1130e818a5fa9969c06641f9c825 100644
 --- a/apps/desktop/src/components/update-status.tsx
 +++ b/apps/desktop/src/components/update-status.tsx
 @@ -247,6 +247,10 @@ export function VersionHero({
@@ -69,10 +69,10 @@ index 51abbdfe3ff7a2862b08bcacf259c9d4ce877a3e..29d6de297180832831697f45c9ebfa5e
        {(version?.bundleSwapPending || version?.bundleOutOfSync) && (
          <div className="mx-auto w-full max-w-2xl rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-left text-sm">
 diff --git a/apps/desktop/src/i18n/en.ts b/apps/desktop/src/i18n/en.ts
-index 57a5b0604644dcb4f61155382dda4beeef8224ca..05f65bbd251c07dd6f94d67fac199ccd9a45a798 100644
+index 39c9a6027acc644b9ca1ad17c4c95d96bdf6f270..d5fd0786cb61448e29cce44eed53cab85bc242e5 100644
 --- a/apps/desktop/src/i18n/en.ts
 +++ b/apps/desktop/src/i18n/en.ts
-@@ -3765,7 +3765,8 @@ export const en: Translations = {
+@@ -3781,7 +3781,8 @@ export const en: Translations = {
        noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.',
        owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`hermes update\` to finish them.`
      },

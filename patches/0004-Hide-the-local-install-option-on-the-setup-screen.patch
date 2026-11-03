@@ -12,10 +12,10 @@ would install. When the main process reports the light variant, show only
 Intents: remote-only
 
 diff --git a/apps/desktop/src/components/desktop-install-overlay.tsx b/apps/desktop/src/components/desktop-install-overlay.tsx
-index 0cc4d279faa81e0294be51b03e2359ef42b54fc4..132b4b30bb8786922d87b181df18d460cffaa4f4 100644
+index c6f77da58b2db414d031561388695c3768c35905..ff00a25693a37c9efb6d352482c912a3798f6580 100644
 --- a/apps/desktop/src/components/desktop-install-overlay.tsx
 +++ b/apps/desktop/src/components/desktop-install-overlay.tsx
-@@ -211,7 +211,9 @@ function applyEvent(state: DesktopBootstrapState, ev: DesktopBootstrapEvent): De
+@@ -212,7 +212,9 @@ function applyEvent(state: DesktopBootstrapState, ev: DesktopBootstrapEvent): De
              platform: ev.platform || state.setupChoice?.platform || 'unknown',
              activeRoot: ev.activeRoot || state.setupChoice?.activeRoot || '',
              local: ev.local || state.setupChoice?.local || 'none',
@@ -26,7 +26,7 @@ index 0cc4d279faa81e0294be51b03e2359ef42b54fc4..132b4b30bb8786922d87b181df18d460
            }
          : null,
        unsupportedPlatform: null,
-@@ -443,6 +445,8 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
+@@ -444,6 +446,8 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
    if (state.setupChoice) {
      const localState = state.setupChoice.local
      const localPres = localCardPresentation(localState)
@@ -35,7 +35,7 @@ index 0cc4d279faa81e0294be51b03e2359ef42b54fc4..132b4b30bb8786922d87b181df18d460
  
      return (
        <div className="fixed inset-0 z-(--z-setup) flex items-center justify-center bg-background/90 p-4 backdrop-blur-md">
-@@ -451,13 +455,13 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
+@@ -452,13 +456,13 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
              <BrandMark className="size-11 shrink-0" />
              <div className="min-w-0">
                <h2 className="text-xl font-semibold tracking-tight">{copy.setupChoiceTitle}</h2>
@@ -51,7 +51,7 @@ index 0cc4d279faa81e0294be51b03e2359ef42b54fc4..132b4b30bb8786922d87b181df18d460
              <button
                className="rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-4 text-left transition hover:bg-(--chrome-action-hover)"
                onClick={() => setRemoteOpen(true)}
-@@ -473,6 +477,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
+@@ -474,6 +478,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
              <button
                className="rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-4 text-left transition hover:bg-(--chrome-action-hover) disabled:cursor-not-allowed disabled:opacity-60"
                disabled={localStarting}
@@ -59,7 +59,7 @@ index 0cc4d279faa81e0294be51b03e2359ef42b54fc4..132b4b30bb8786922d87b181df18d460
                onClick={async () => {
                  setLocalStart({ root: activeRoot, starting: true, error: null })
  
-@@ -509,7 +514,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
+@@ -510,7 +515,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
              </div>
            ) : null}
  
@@ -69,10 +69,10 @@ index 0cc4d279faa81e0294be51b03e2359ef42b54fc4..132b4b30bb8786922d87b181df18d460
                {copy.installTo}{' '}
                <code className="font-mono text-(--ui-text-secondary)">{state.setupChoice.activeRoot}</code>
 diff --git a/apps/desktop/src/global.d.ts b/apps/desktop/src/global.d.ts
-index b266da09084b763017fd34ad93e0aba8dda2d700..aafda54e5772e5c9df9d6a08497cecd7ac93121b 100644
+index d85915fd5e1627f0cf984fb649ebe0f929bcae2f..9c204d01d67f19364c3d017ebf47ded49dd4b9c1 100644
 --- a/apps/desktop/src/global.d.ts
 +++ b/apps/desktop/src/global.d.ts
-@@ -1477,6 +1477,8 @@ export interface DesktopBootstrapSetupChoice {
+@@ -1590,6 +1590,8 @@ export interface DesktopBootstrapSetupChoice {
    local: 'none' | 'installed' | 'bundled'
    /** This artifact is a bundled install (payload ships in-app). */
    bundled: boolean
@@ -81,7 +81,7 @@ index b266da09084b763017fd34ad93e0aba8dda2d700..aafda54e5772e5c9df9d6a08497cecd7
  }
  
  export interface DesktopBootstrapState {
-@@ -1502,6 +1504,8 @@ export type DesktopBootstrapEvent =
+@@ -1615,6 +1617,8 @@ export type DesktopBootstrapEvent =
        activeRoot?: string
        local?: DesktopBootstrapSetupChoice['local']
        bundled?: boolean

@@ -3,5 +3,5 @@
 # Keep KEY="value" quoting: the file must stay valid as both bash and TOML,
 # because the README's upstream badge reads UPSTREAM_TAG from it.
 UPSTREAM_REPO="https://github.com/NousResearch/hermes-agent.git"
-UPSTREAM_TAG="v0.22.5"
-UPSTREAM_COMMIT="bf0203a794a07aac3ff764972ab9087baa4e4f4e"
+UPSTREAM_TAG="v0.22.6"
+UPSTREAM_COMMIT="f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab"
