@@ -49,13 +49,14 @@ echo "==> Installing dependencies"
 echo "==> Building apps/desktop (variant: light)"
 export HERMES_DESKTOP_VARIANT=light
 # These switch upstream's build into release, channel or signing modes, which
-# need tags, Python or credentials. Without GITHUB_SHA (which is this
-# repository's commit), the build stamp records the patched upstream HEAD;
-# apply-patches.sh makes that commit deterministic, so fetch + apply on the
-# same pin recreates it.
-unset GITHUB_SHA HERMES_PAYLOAD_TAG HERMES_BUILD_COMMIT _HERMES_CHANNEL_REQUEST_JSON \
+# need tags, Python or credentials.
+unset HERMES_PAYLOAD_TAG HERMES_BUILD_COMMIT _HERMES_CHANNEL_REQUEST_JSON \
   AZURE_SIGN_ENDPOINT AZURE_CLIENT_ID CSC_LINK
-(cd "$app" && npm run build)
+# The build stamp takes its commit from GITHUB_SHA, or else from the checkout's
+# HEAD, which is the patched commit that exists only here. Record the pinned
+# upstream commit and tag instead, so About links to a real upstream commit.
+# On CI, GITHUB_SHA would otherwise be this repository's commit.
+(cd "$app" && GITHUB_SHA="$UPSTREAM_COMMIT" GITHUB_REF_NAME="$UPSTREAM_TAG" GITHUB_HEAD_REF= npm run build)
 # No --x64: an explicit arch flag stages native deps into a directory the
 # upstream source path rejects; the default arch (x64 on the runner) reuses
 # the deps that `npm run build` staged.

@@ -20,9 +20,9 @@ Every intent below lists:
 - `entry.ts` sets `HERMES_DESKTOP_USER_DATA_DIR` to `data\`, which upstream also uses for the Hermes home (`data\hermes-home`).
 - `entry.ts` pins `HERMES_HOME` to `data\hermes-home`: an inherited `HERMES_HOME` takes precedence over `HERMES_DESKTOP_USER_DATA_DIR` in `resolveDesktopHermesHome` (`electron/data-paths.mjs`).
 - `entry.ts` sets `HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION=1`: no `HKCU\Software\Classes\hermes`.
-- `product-identity.ts` skips creating the default `%APPDATA%\<app name>` folder while the override is set.
+- `entry.ts` also applies `userData` itself before main is imported, because modules main imports read it as they load (for example the link-preview favicon cache in `link-metadata.ts`), and on quit removes Electron's default folder (`%APPDATA%\Hermes`, from the package's `productName`) while it is empty.
 
-**Revisit on bump.** Anything new that writes to a fixed location before or regardless of `userData`: `app.getPath(` calls for `appData`, `temp` or `home`, `mkdirSync` near startup, registry writes (`setAsDefaultProtocolClient`, `reg add`, `setLoginItemSettings`, jump lists, notification registration). Check how the Hermes home is resolved in `data-paths.mjs`.
+**Revisit on bump.** Anything new that writes to a fixed location before or regardless of `userData`: module-level `app.getPath(` calls in files main imports, `app.getPath(` calls for `appData`, `temp` or `home`, `mkdirSync` near startup, registry writes (`setAsDefaultProtocolClient`, `reg add`, `setLoginItemSettings`, jump lists, notification registration). Check how the Hermes home is resolved in `data-paths.mjs`.
 
 **Obsolete when.** Upstream ships a portable mode that does all of the above.
 
@@ -44,7 +44,7 @@ Every intent below lists:
 
 - `entry.ts` sets `HERMES_DESKTOP_IGNORE_EXISTING=1`: backend resolution skips installed runtimes.
 - `main.ts`, `ensureRuntime()`: the light variant refuses the first-launch bootstrap. This is the single entry point to `runBootstrap`. The refusal does not set `bootstrapFailure`: that latch is global, and setting it would make the remote primary fail too until the app restarts.
-- `main.ts`, the gateway roster: "This device" is never enumerated, so nothing dials a local backend in the background.
+- `main.ts`, the gateway roster: "This device" is left out, so nothing dials a local backend in the background and the profile rail shows neither an unreachable local entry nor a switch to it.
 - `main.ts` sends `light` with the setup-choice event and snapshot. `desktop-install-overlay.tsx` hides the local option, and `global.d.ts` types the flag.
 
 **Known gaps.** The **Local gateway** connection mode, "This device" under Saved connections and **Repair** are still shown; they fail safely through the bootstrap refusal. Hiding them is a possible later change, only if it stays small. Filtering "This device" out of the connection list is not enough on its own: the Add connection form would then offer a Local kind.
@@ -55,9 +55,9 @@ Every intent below lists:
 
 ## `identity`: clearly an unofficial build
 
-**Promise.** The app is named "Hermes Portable", the executable is `HermesPortable.exe` (no spaces), and the About screen says it is an unofficial build, not affiliated with Nous Research.
+**Promise.** The app is named "Hermes Portable", the executable is `HermesPortable.exe` (no spaces), and the About screen is headed "Hermes Portable", says it is an unofficial build not affiliated with Nous Research, and links to the upstream commit it was built from. Other upstream strings that say "Hermes Desktop" are kept: the package is a repack of Hermes Desktop.
 
-**How.** `product-identity.cjs` names the light variant and its executable; `product-identity.test.ts` follows the name; `update-status.tsx` shows the notice.
+**How.** `product-identity.cjs` names the light variant and its executable; `product-identity.test.ts` follows the name; `src/i18n/en.ts` heads About with the name (English only; other languages keep "Hermes"); `update-status.tsx` shows the notice. About links its commit to the pinned upstream commit, because `scripts/build.sh` records that commit in the build stamp instead of the patched one.
 
 **Revisit on bump.** How the product identity is derived (`product-identity.cjs`), and where About renders the version block.
 

@@ -8,6 +8,11 @@ distribution. Name it "Hermes Portable", give the Windows executable a name
 without spaces (HermesPortable.exe), and state on the About screen that the
 build is not an official Nous Research release.
 
+- Name the light variant "Hermes Portable" and its executable
+  HermesPortable.exe; the identity test follows the name.
+- Head the About screen with "Hermes Portable" (English strings only).
+- Show the unofficial-build notice under the version on About.
+
 Intents: identity
 
 diff --git a/apps/desktop/electron/product-identity.test.ts b/apps/desktop/electron/product-identity.test.ts
@@ -63,3 +68,17 @@ index 51abbdfe3ff7a2862b08bcacf259c9d4ce877a3e..29d6de297180832831697f45c9ebfa5e
        </div>
        {(version?.bundleSwapPending || version?.bundleOutOfSync) && (
          <div className="mx-auto w-full max-w-2xl rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-left text-sm">
+diff --git a/apps/desktop/src/i18n/en.ts b/apps/desktop/src/i18n/en.ts
+index 57a5b0604644dcb4f61155382dda4beeef8224ca..05f65bbd251c07dd6f94d67fac199ccd9a45a798 100644
+--- a/apps/desktop/src/i18n/en.ts
++++ b/apps/desktop/src/i18n/en.ts
+@@ -3765,7 +3765,8 @@ export const en: Translations = {
+       noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.',
+       owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`hermes update\` to finish them.`
+     },
+-    appName: 'Hermes', // Update-status overlay + version-details (mechanism-aware update UI).
++    // hermes-desktop-portable(identity): About names this build, not upstream's app.
++    appName: 'Hermes Portable', // Update-status overlay + version-details (mechanism-aware update UI).
+     version: (value: string) => `Version ${value}`,
+     versionUnavailable: 'Version unavailable',
+     checkNow: 'Check now',

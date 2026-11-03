@@ -19,32 +19,42 @@ gateway tokens unencrypted by default.
   (left by an official install) takes precedence over data\.
 - Set HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION so no hermes:// handler
   is registered.
-- Do not create the default %APPDATA%\Hermes folder while applying the
-  product identity when HERMES_DESKTOP_USER_DATA_DIR is set.
+- Point userData at data\ in entry.ts, before main is imported: modules
+  that main imports read it as they load (the link-preview favicon cache,
+  for one), before main applies the override itself.
+- Remove Electron's empty default folder (%APPDATA%\Hermes) on quit, only
+  while it is empty.
 - Default token storage to DPAPI encryption on Windows when no choice has
   been saved.
 
 Remote-only. Upstream's light variant ships no runtime, but it still uses
 a Hermes installed on the machine, and it runs the first-launch bootstrap
 when anything asks for a local backend, such as the registry's mandatory
-"This device" entry right after first-run setup. The bootstrap fetches
-install.ps1 for the build commit, which for this project is the patched
-upstream HEAD and does not exist on GitHub (404). Its failure is latched
-globally, so the remote primary stops working too until the app restarts.
+"This device" entry right after first-run setup. The bootstrap downloads
+upstream's install.ps1 and sets up a full local Hermes (Python, uv, Git).
+A failed bootstrap is latched globally, so the remote primary stops
+working too until the app restarts.
 
 - Set HERMES_DESKTOP_IGNORE_EXISTING so an installed runtime is never used.
 - Refuse the bootstrap on the light variant without setting that latch.
-- Never enumerate "This device" in the gateway roster.
+- Leave "This device" out of the gateway roster, so the profile rail
+  shows no unreachable local entry and no switch to it.
 - Tell the setup screen it runs on the light variant, so it can hide the
   local install option.
 
 Intents: portable-data, encrypted-tokens, remote-only
 
 diff --git a/apps/desktop/electron/entry.ts b/apps/desktop/electron/entry.ts
-index abed288fe2ac5b5d6d17a715798f1ad15dde4339..c2f5728833f2b2ed7c638ad0c09693af975741b0 100644
+index abed288fe2ac5b5d6d17a715798f1ad15dde4339..b40b7b36f939c70aefe762d2dc2f8c4ef76aa126 100644
 --- a/apps/desktop/electron/entry.ts
 +++ b/apps/desktop/electron/entry.ts
-@@ -30,6 +30,21 @@ function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
+@@ -1,4 +1,4 @@
+-import { readFileSync } from 'node:fs'
++import { mkdirSync, readFileSync, rmdirSync } from 'node:fs'
+ import os from 'node:os'
+ import path from 'node:path'
+ 
+@@ -30,6 +30,37 @@ function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
    }
  }
  
@@ -58,6 +68,22 @@ index abed288fe2ac5b5d6d17a715798f1ad15dde4339..c2f5728833f2b2ed7c638ad0c09693af
 +  process.env.HERMES_DESKTOP_USER_DATA_DIR ||= path.join(path.dirname(process.execPath), 'data')
 +  process.env.HERMES_HOME = path.join(process.env.HERMES_DESKTOP_USER_DATA_DIR, 'hermes-home')
 +  process.env.HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION = '1'
++  // Modules imported by main read userData as they load, before main applies
++  // the override, so apply it here first. Electron's default folder
++  // (%APPDATA%\Hermes) can still be created before this runs: remove it on
++  // quit, only while it is empty.
++  const defaultUserData = app.getPath('userData')
++  const userData = path.resolve(process.env.HERMES_DESKTOP_USER_DATA_DIR)
++
++  mkdirSync(userData, { recursive: true })
++  app.setPath('userData', userData)
++  app.once('will-quit', () => {
++    try {
++      rmdirSync(defaultUserData)
++    } catch {
++      // Not empty, already gone, or the same folder: leave it.
++    }
++  })
 +  // hermes-desktop-portable(remote-only): never use a Hermes runtime installed
 +  // on this machine.
 +  process.env.HERMES_DESKTOP_IGNORE_EXISTING = '1'
@@ -67,7 +93,7 @@ index abed288fe2ac5b5d6d17a715798f1ad15dde4339..c2f5728833f2b2ed7c638ad0c09693af
  const electronFlags = linux ? configuredElectronFlags(process.env) : []
  
 diff --git a/apps/desktop/electron/main.ts b/apps/desktop/electron/main.ts
-index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..717dff5ed867616f2c02135586bc1f60d4487eb6 100644
+index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..290be2176d0d202aed7184189c053d8f99410c64 100644
 --- a/apps/desktop/electron/main.ts
 +++ b/apps/desktop/electron/main.ts
 @@ -2549,7 +2549,9 @@ function broadcastBootstrapEvent(ev) {
@@ -128,34 +154,14 @@ index 3206f7e63c2e2e7bdbdfe49868e44303252d0264..717dff5ed867616f2c02135586bc1f60
      _secretStoragePolicy = readSecretStoragePolicy(_secretStoragePolicyIo)
    }
  
-@@ -15001,7 +15027,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
-                 profileRemoteOverride: Boolean(profileHasRemoteOverride(primaryProfileKey()))
-               })
+@@ -14958,7 +14984,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
  
--              if (shouldDeferLocalEnumeration(localRoute, backendPool.keys(), connection.id)) {
-+              // hermes-desktop-portable(remote-only): the light variant has no
-+              // local runtime, so "This device" is never enumerated.
-+              if (isLightVariant() || shouldDeferLocalEnumeration(localRoute, backendPool.keys(), connection.id)) {
-                 return { connection, profiles: null, error: 'connect-on-demand' }
-               }
-             }
-diff --git a/apps/desktop/electron/product-identity.ts b/apps/desktop/electron/product-identity.ts
-index 8ca5f6cf1206550dc50ecdcdea68fbe6e5854a36..068c1cc54d65762c664e75157534567f7d4d6db0 100644
---- a/apps/desktop/electron/product-identity.ts
-+++ b/apps/desktop/electron/product-identity.ts
-@@ -40,7 +40,14 @@ export function applyDesktopIdentity(
-   }
+   return withoutInteractiveOauthLogin(() =>
+     Promise.all(
+-      registry.connections.map(async connection => {
++      // hermes-desktop-portable(remote-only): the light variant has no local
++      // runtime, so "This device" is left out of the roster and the rail.
++      registry.connections.filter(c => !(isLightVariant() && c.kind === 'local')).map(async connection => {
+         let sourceFailureDetail = ''
  
-   const userData: string = path.join(app.getPath('appData'), identity.appNamePascal)
--  mkdirSync(userData, { recursive: true })
-+
-+  // hermes-desktop-portable(portable-data): main.ts moves userData to this
-+  // override right after; creating the default folder here would leave an
-+  // empty %APPDATA%\Hermes behind.
-+  if (!process.env.HERMES_DESKTOP_USER_DATA_DIR) {
-+    mkdirSync(userData, { recursive: true })
-+  }
-+
-   app.setPath('userData', userData)
-   app.setName(identity.displayName)
- 
+         let raw: {
