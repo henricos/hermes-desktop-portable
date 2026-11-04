@@ -93,7 +93,7 @@ index 115433928d8f15a24d264bb4ca1854278f8f6057..32966c5aa9d98b85d50a766665552755
  const electronFlags = linux ? configuredElectronFlags(process.env) : []
  
 diff --git a/apps/desktop/electron/main.ts b/apps/desktop/electron/main.ts
-index 4ed1fe4d117797419c4f095c17e81bbe922165db..ec641f7668571c6e02ca0e1ccb51aa7e598c9a74 100644
+index 8e422d6b65c62f8d8178380d4d637628bed48050..565edf90c01eddfa31108bf74748e6674a6d449a 100644
 --- a/apps/desktop/electron/main.ts
 +++ b/apps/desktop/electron/main.ts
 @@ -2521,7 +2521,9 @@ function broadcastBootstrapEvent(ev) {
