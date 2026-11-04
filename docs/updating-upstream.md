@@ -38,7 +38,22 @@ diff <(git grep -ohE 'HERMES_DESKTOP_[A-Z_]+' <old tag> -- apps/desktop/electron
      <(git grep -ohE 'HERMES_DESKTOP_[A-Z_]+' <new tag> -- apps/desktop/electron | sort -u)
 ```
 
-Write down the decisions; they go into the bump commit's message.
+The files the patches touch are not the only place an intent can break. Review the whole release too: read the release notes (`gh release view <new tag> -R NousResearch/hermes-agent`), then go through every non-test change in the desktop app:
+
+```bash
+git diff --numstat <old tag> <new tag> -- apps/desktop | grep -vE '\.test\.|/e2e/|i18n/'
+```
+
+Read each diff that could matter, not only those matching an intent's patterns, and look for:
+
+- **A path around a patch**: code that now runs before the patched point (startup order in `entry.ts` and `main.ts`), a new caller that reaches the same effect without going through it, or a patched function that is no longer called.
+- **A new gap**: anything that writes outside `userData`, touches the registry, spawns or downloads a local runtime, offers a local option in the renderer, or sends data somewhere new.
+- **Server compatibility**: new protocol methods, config keys or API fields (`src/api/`, `src/types/`). These are why [`usage.md`](usage.md) tells users to run the same Hermes version on the server; note them so the operator knows the server needs the new release too.
+- **The build**: `apps/desktop/package.json` (new dependencies), `pm/lock.json` (Node and npm pins), electron-builder config, `vite.config.ts`, `scripts/`.
+
+Changes outside `apps/desktop` (the agent, gateway and CLI) only reach the package through the server, so check them for protocol changes only.
+
+Write down the decisions and what the whole-release review found; they go into the bump commit's message.
 
 ### 2. Apply
 
