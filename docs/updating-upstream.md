@@ -8,7 +8,7 @@ Every command below that creates a commit needs a Git identity, and the project'
 G='git -c user.name=hermes-desktop-portable -c user.email=build@hermes-desktop-portable.invalid'
 ```
 
-After `npm ci` has run in `./upstream`, upstream's lefthook pre-commit hook runs eslint on each commit; prefix a command with `LEFTHOOK=0` to skip it.
+After `pnpm install` has run in `./upstream`, upstream's lefthook pre-commit hook runs eslint on each commit; prefix a command with `LEFTHOOK=0` to skip it.
 
 ## Bump to a new Hermes release
 
@@ -49,7 +49,7 @@ Read each diff that could matter, not only those matching an intent's patterns, 
 - **A path around a patch**: code that now runs before the patched point (startup order in `entry.ts` and `main.ts`), a new caller that reaches the same effect without going through it, or a patched function that is no longer called.
 - **A new gap**: anything that writes outside `userData`, touches the registry, spawns or downloads a local runtime, offers a local option in the renderer, or sends data somewhere new.
 - **Server compatibility**: new protocol methods, config keys or API fields (`src/api/`, `src/types/`). These are why [`usage.md`](usage.md) tells users to run the same Hermes version on the server; note them so the operator knows the server needs the new release too.
-- **The build**: `apps/desktop/package.json` (new dependencies), `pm/lock.json` (Node and npm pins), electron-builder config, `vite.config.ts`, `scripts/`.
+- **The build**: `apps/desktop/package.json` (new dependencies), `pm/lock.json` (Node and pnpm pins), electron-builder config, `vite.config.ts`, `scripts/`.
 
 Changes outside `apps/desktop` (the agent, gateway and CLI) only reach the package through the server, so check them for protocol changes only.
 
@@ -66,7 +66,7 @@ This repoints `upstream.lock` (stable `vX.Y.Z` release tags only), fetches the n
 ### 3. Verify every intent
 
 - Each intent's marker still sits at each place its **How** names: `git grep -n 'hermes-desktop-portable(<id>)' -- apps/desktop` in `./upstream`.
-- Typecheck, lint and test (`npm run typecheck`, `npm run lint`, and the tests of the files the patches touch, in `upstream/apps/desktop` after `npm ci` at `upstream/`).
+- Typecheck, lint and test (`pnpm run typecheck`, `pnpm run lint`, and the tests of the files the patches touch, in `upstream/apps/desktop` after `pnpm install --frozen-lockfile` at `upstream/`).
 - Update [`intents.md`](intents.md), [`patches/README.md`](../patches/README.md), [`usage.md`](usage.md) and the [test checklist](build-github-actions.md#testing-a-package) when a mechanism or a promise changed.
 
 Review `git diff patches/` and commit `upstream.lock`, `patches/` and the docs together. Build, and run [Testing a package](build-github-actions.md#testing-a-package): each check there names the intent it proves. The release revision restarts at `-r1` (see [Releases](build-github-actions.md#releases)).
@@ -103,7 +103,7 @@ git checkout HEAD -- <file>         # drop the half-applied file; start from the
 4. If upstream now does what the patch did, drop that part, or the whole patch (`$G am --skip`) and its row in `patches/README.md`.
 5. Update the commit message if the change is no longer the same (see [Change or add a patch](#change-or-add-a-patch)), then refresh.
 
-Verify before committing: typecheck and lint the desktop app (`npm run typecheck` and `npm run lint` in `upstream/apps/desktop`, after `npm ci` at `upstream/`), then build on GitHub Actions and run [Testing a package](build-github-actions.md#testing-a-package).
+Verify before committing: typecheck and lint the desktop app (`pnpm run typecheck` and `pnpm run lint` in `upstream/apps/desktop`, after `pnpm install --frozen-lockfile` at `upstream/`), then build on GitHub Actions and run [Testing a package](build-github-actions.md#testing-a-package).
 
 ## Change or add a patch
 
@@ -147,4 +147,4 @@ Always start from `fetch-upstream.sh && apply-patches.sh`, so that you change th
 | `apply-patches.sh` | `patches/*.patch` as commits, with `git am -3` |
 | `refresh-patches.sh` | Commits in `./upstream` back to `patches/` |
 | `bump-upstream.sh <tag>` | New pin, then fetch, apply and refresh |
-| `build.sh [--version v]` | Fetch, apply, `npm ci`, build, zip into `dist/` (Windows only) |
+| `build.sh [--version v]` | Fetch, apply, `pnpm install`, build, zip into `dist/` (Windows only) |

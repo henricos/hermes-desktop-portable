@@ -16,7 +16,7 @@ build is not an official Nous Research release.
 Intents: identity
 
 diff --git a/apps/desktop/electron/product-identity.test.ts b/apps/desktop/electron/product-identity.test.ts
-index a45fc948e6972db01762eeadee85da91821fdc44..37c0832a8fc4290523e00e89dfd583fa86516fce 100644
+index 9e10fc3b11eb0f5a74ef860cc599ebbf3da1af81..57d794ae5ffae12b3273a48e927c82ca83acb865 100644
 --- a/apps/desktop/electron/product-identity.test.ts
 +++ b/apps/desktop/electron/product-identity.test.ts
 @@ -120,7 +120,8 @@ test('nonstable runtime pins userData before the app name can change', async ():
@@ -69,10 +69,10 @@ index 69813455d3731f1f78870a7fea69b0ec2b49a54c..f73416dc28db1130e818a5fa9969c066
        {(version?.bundleSwapPending || version?.bundleOutOfSync) && (
          <div className="mx-auto w-full max-w-2xl rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-left text-sm">
 diff --git a/apps/desktop/src/i18n/en.ts b/apps/desktop/src/i18n/en.ts
-index c4a63f28d3087eceb51ef5fd75b7a34e54d31933..04802bdfc7ee758e75f9686d19d4c1446d82d185 100644
+index e00f9ff5b4e945a5abc74b581c514f4d0b0e02e5..1e132a006b7288f6eed68336eec68de9404bdc25 100644
 --- a/apps/desktop/src/i18n/en.ts
 +++ b/apps/desktop/src/i18n/en.ts
-@@ -3807,7 +3807,8 @@ export const en: Translations = {
+@@ -3814,7 +3814,8 @@ export const en: Translations = {
        noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.',
        owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`hermes update\` to finish them.`
      },

@@ -2,7 +2,7 @@
 #
 # - push to main, pull requests, manual runs: build and keep the ZIP as a
 #   workflow artifact.
-# - push of a tag v<upstream>-r<N> (for example v0.22.7-r1): build, then
+# - push of a tag v<upstream>-r<N> (for example v0.23.1-r1): build, then
 #   create a draft GitHub Release with the ZIP and its SHA-256. The
 #   maintainer tests the ZIP and publishes the draft by hand.
 #
@@ -50,7 +50,7 @@ jobs:
           source upstream.lock
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             version="${GITHUB_REF_NAME}"
-            # A release tag must name the pinned upstream: v0.22.7-r1 for v0.22.7.
+            # A release tag must name the pinned upstream: v0.23.1-r1 for v0.23.1.
             if [[ ! "$version" =~ ^${UPSTREAM_TAG//./\\.}-r[0-9]+$ ]]; then
               echo "error: tag $version does not match ${UPSTREAM_TAG}-r<N> from upstream.lock" >&2
               exit 1
@@ -70,8 +70,8 @@ jobs:
       - name: Fetch upstream
         run: scripts/fetch-upstream.sh
 
-      # Upstream's own CI pins exact Node and npm versions in pm/lock.json, and
-      # its .npmrc sets engine-strict, so an arbitrary npm can fail npm ci.
+      # Upstream pins exact Node and pnpm versions in pm/lock.json, and its
+      # root preinstall refuses any other pnpm (and npm altogether).
       # The runner's preinstalled Node is enough to read the file.
       - name: Resolve toolchain
         id: toolchain
@@ -79,19 +79,17 @@ jobs:
           node -e '
             const { packages } = require("./upstream/pm/lock.json")
             console.log(`node=${packages.node.version}`)
-            console.log(`npm=${packages.npm.version}`)
+            console.log(`pnpm=${packages.pnpm.version}`)
           ' | tee -a "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ steps.toolchain.outputs.node }}
-          cache: npm
-          cache-dependency-path: upstream/package-lock.json
 
-      - name: Install pinned npm
+      - name: Install pinned pnpm
         run: |
-          npm install --global "npm@${{ steps.toolchain.outputs.npm }}"
-          echo "node $(node --version), npm $(npm --version)"
+          npm install --global "pnpm@${{ steps.toolchain.outputs.pnpm }}"
+          echo "node $(node --version), pnpm $(pnpm --version)"
 
       # The ZIP inside is what users download: a release names it after the
       # tag, a dev build gets build.sh's default (<upstream tag>-dev). The

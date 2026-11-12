@@ -15,7 +15,7 @@ Current:
 | Patch | Files (`apps/desktop/`) | Intents |
 |---|---|---|
 | `0001-Rename-the-light-variant-and-mark-it-unofficial` | `product-identity.cjs`, `electron/product-identity.test.ts`, `src/components/update-status.tsx`, `src/i18n/en.ts` | `identity` |
-| `0002-Keep-data-portable-and-refuse-local-runtimes` | `electron/entry.ts`, `electron/main.ts` | `portable-data`, `encrypted-tokens`, `remote-only` |
+| `0002-Keep-data-portable-and-refuse-local-runtimes` | `electron/entry.ts`, `electron/main.ts` | `portable-data`, `remote-only` |
 | `0003-Point-the-update-notice-to-this-project-s-releases` | `electron/updater/external.ts` | `update-source` |
 | `0004-Hide-the-local-install-option-on-the-setup-screen` | `src/components/desktop-install-overlay.tsx`, `src/global.d.ts` | `remote-only` |
 

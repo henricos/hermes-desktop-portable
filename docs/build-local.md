@@ -22,23 +22,23 @@ cd /c/src/hermes-desktop-portable
 
 Clone to a short path such as `C:\src`.
 
-## 2. Get the pinned Node and npm
+## 2. Get the pinned Node and pnpm
 
-Upstream pins exact versions, and its `.npmrc` sets `engine-strict`, so another npm can make `npm ci` fail. `build.sh` only warns when the Node major version differs, and does not check npm at all.
+Upstream installs with pnpm and pins exact versions; its install refuses npm and any other pnpm version. `build.sh` stops when pnpm is not the pinned version, and only warns when the Node major version differs.
 
 ```bash
 scripts/fetch-upstream.sh    # pinned upstream into ./upstream
 ```
 
-Open `upstream/pm/lock.json` and read `packages.node.version` and `packages.npm.version` (for v0.22.7: Node 26.12.1, npm 12.0.2). Then, for this Git Bash session:
+Open `upstream/pm/lock.json` and read `packages.node.version` and `packages.pnpm.version` (for v0.23.1: Node 26.12.1, pnpm 12.15.0). Then, for this Git Bash session:
 
 1. Download the Node `win-x64` ZIP of that version from [nodejs.org](https://nodejs.org/dist/) and unpack it, for example to `C:\tools\node-v26.12.1-win-x64`.
-2. Put it on `PATH` and install the pinned npm into it:
+2. Put it on `PATH` and install the pinned pnpm into it:
 
 ```bash
 export PATH="/c/tools/node-v26.12.1-win-x64:$PATH"
-npm install --global npm@12.0.2
-node --version && npm --version
+npm install --global pnpm@12.15.0
+node --version && pnpm --version
 ```
 
 Nothing is installed system-wide; closing the shell undoes the `PATH` change.
@@ -49,11 +49,11 @@ Nothing is installed system-wide; closing the shell undoes the `PATH` change.
 scripts/build.sh
 ```
 
-`build.sh` fetches upstream again (reusing `./upstream`), applies the patches, runs `npm ci`, builds and zips. `--version` is optional and only names the ZIP (`HermesPortable-<version>.zip`); it defaults to `<UPSTREAM_TAG>-dev`. Keep `-r<N>` for published releases.
+`build.sh` fetches upstream again (reusing `./upstream`), applies the patches, installs dependencies with `pnpm install --frozen-lockfile`, builds and zips. `--version` is optional and only names the ZIP (`HermesPortable-<version>.zip`); it defaults to `<UPSTREAM_TAG>-dev`. Keep `-r<N>` for published releases.
 
 Output:
 
-- `dist/HermesPortable-v0.22.7-dev.zip`, the package;
+- `dist/HermesPortable-v0.23.1-dev.zip`, the package;
 - `upstream/apps/desktop/release/win-unpacked/`, the same app unpacked, ready to run.
 
 `./upstream` and `./dist` are ignored by git. To build a newer Hermes version, update the pin first: see [Updating upstream](updating-upstream.md).

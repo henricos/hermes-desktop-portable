@@ -9,9 +9,8 @@ connects to Hermes gateways running elsewhere. Where upstream already has
 a switch for a behavior, entry.ts sets it before main is imported; code
 changes are kept for what no switch covers.
 
-Portable data. Upstream writes to %APPDATA%\Hermes,
-%LOCALAPPDATA%\hermes\logs and the HKCU hermes:// handler, and stores
-gateway tokens unencrypted by default.
+Portable data. Upstream writes to %APPDATA%\Hermes and
+%LOCALAPPDATA%\hermes\logs, and registers the HKCU hermes:// handler.
 
 - Default HERMES_DESKTOP_USER_DATA_DIR to data\ next to the executable in
   packaged Windows builds, which also moves the Hermes home under it.
@@ -24,8 +23,6 @@ gateway tokens unencrypted by default.
   for one), before main applies the override itself.
 - Remove Electron's empty default folder (%APPDATA%\Hermes) on quit, only
   while it is empty.
-- Default token storage to DPAPI encryption on Windows when no choice has
-  been saved.
 
 Remote-only. Upstream's light variant ships no runtime, but it still uses
 a Hermes installed on the machine, and it runs the first-launch bootstrap
@@ -42,10 +39,10 @@ working too until the app restarts.
 - Tell the setup screen it runs on the light variant, so it can hide the
   local install option.
 
-Intents: portable-data, encrypted-tokens, remote-only
+Intents: portable-data, remote-only
 
 diff --git a/apps/desktop/electron/entry.ts b/apps/desktop/electron/entry.ts
-index 115433928d8f15a24d264bb4ca1854278f8f6057..32966c5aa9d98b85d50a76666555275565b75c14 100644
+index 88a893a93a457c1a9a3e506808493e2c053f5b73..9cde30c7319438a43c8e5dfe918c5aed3fc2790e 100644
 --- a/apps/desktop/electron/entry.ts
 +++ b/apps/desktop/electron/entry.ts
 @@ -1,4 +1,4 @@
@@ -93,10 +90,10 @@ index 115433928d8f15a24d264bb4ca1854278f8f6057..32966c5aa9d98b85d50a766665552755
  const electronFlags = linux ? configuredElectronFlags(process.env) : []
  
 diff --git a/apps/desktop/electron/main.ts b/apps/desktop/electron/main.ts
-index 8e422d6b65c62f8d8178380d4d637628bed48050..565edf90c01eddfa31108bf74748e6674a6d449a 100644
+index e1d672321efa5bb527638235c1fea1184c18576d..f82a307945089c352dfa3f822f1fe403db6b6703 100644
 --- a/apps/desktop/electron/main.ts
 +++ b/apps/desktop/electron/main.ts
-@@ -2521,7 +2521,9 @@ function broadcastBootstrapEvent(ev) {
+@@ -2506,7 +2506,9 @@ function broadcastBootstrapEvent(ev) {
            platform: ev.platform,
            activeRoot: ev.activeRoot,
            local: ev.local || 'none',
@@ -107,7 +104,7 @@ index 8e422d6b65c62f8d8178380d4d637628bed48050..565edf90c01eddfa31108bf74748e667
          }
        : null
      bootstrapState.unsupportedPlatform = null
-@@ -2567,7 +2569,9 @@ function promptFirstRunSetupChoice(backend) {
+@@ -2552,7 +2554,9 @@ function promptFirstRunSetupChoice(backend) {
      platform: backend.platform || process.platform,
      activeRoot: backend.activeRoot || ACTIVE_HERMES_ROOT,
      local: backend.local || 'none',
@@ -118,7 +115,7 @@ index 8e422d6b65c62f8d8178380d4d637628bed48050..565edf90c01eddfa31108bf74748e667
    })
  }
  
-@@ -5065,6 +5069,19 @@ async function ensureRuntime(
+@@ -5050,6 +5054,19 @@ async function ensureRuntime(
    // will rewire startup to spawn the window first and route bootstrap events
    // to a renderer-side install overlay.
    //
@@ -138,23 +135,7 @@ index 8e422d6b65c62f8d8178380d4d637628bed48050..565edf90c01eddfa31108bf74748e667
    // The artifact kind forbids bootstrap even when a caller requests repair.
    if (backend.kind === 'bootstrap-needed' && installShape() === 'bundled') {
      rememberLog('[bootstrap] REFUSING installer on a bundled install; payload missing or damaged — reinstall the app')
-@@ -7846,6 +7863,15 @@ let _secretStoragePolicy: SecretStoragePolicy | null = null
- 
- function secretStoragePolicy(): SecretStoragePolicy {
-   if (!_secretStoragePolicy) {
-+    // hermes-desktop-portable(encrypted-tokens): portable data sits in a plain folder, so
-+    // on Windows default to DPAPI encryption until the user chooses otherwise.
-+    // DPAPI never prompts, unlike the macOS keychain this default avoids.
-+    if (IS_WINDOWS && !fs.existsSync(SECRET_STORAGE_POLICY_PATH)) {
-+      setSecretStoragePolicy({ on: true, migrated: true })
-+
-+      return _secretStoragePolicy!
-+    }
-+
-     _secretStoragePolicy = readSecretStoragePolicy(_secretStoragePolicyIo)
-   }
- 
-@@ -14853,7 +14879,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
+@@ -14645,7 +14662,9 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
  
    return withoutInteractiveOauthLogin(() =>
      Promise.all(

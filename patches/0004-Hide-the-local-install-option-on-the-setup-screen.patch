@@ -69,10 +69,10 @@ index c6f77da58b2db414d031561388695c3768c35905..ff00a25693a37c9efb6d352482c912a3
                {copy.installTo}{' '}
                <code className="font-mono text-(--ui-text-secondary)">{state.setupChoice.activeRoot}</code>
 diff --git a/apps/desktop/src/global.d.ts b/apps/desktop/src/global.d.ts
-index d85915fd5e1627f0cf984fb649ebe0f929bcae2f..9c204d01d67f19364c3d017ebf47ded49dd4b9c1 100644
+index 24dc2d0f3411319ec7b9c7303f6e8f2491948088..40098d1ffa0fb5e66e0e3bc8087916a9669adf6f 100644
 --- a/apps/desktop/src/global.d.ts
 +++ b/apps/desktop/src/global.d.ts
-@@ -1590,6 +1590,8 @@ export interface DesktopBootstrapSetupChoice {
+@@ -1623,6 +1623,8 @@ export interface DesktopBootstrapSetupChoice {
    local: 'none' | 'installed' | 'bundled'
    /** This artifact is a bundled install (payload ships in-app). */
    bundled: boolean
@@ -81,7 +81,7 @@ index d85915fd5e1627f0cf984fb649ebe0f929bcae2f..9c204d01d67f19364c3d017ebf47ded4
  }
  
  export interface DesktopBootstrapState {
-@@ -1615,6 +1617,8 @@ export type DesktopBootstrapEvent =
+@@ -1648,6 +1650,8 @@ export type DesktopBootstrapEvent =
        activeRoot?: string
        local?: DesktopBootstrapSetupChoice['local']
        bundled?: boolean

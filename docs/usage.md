@@ -8,17 +8,17 @@ One exception you may notice: while the app runs, an empty `%APPDATA%\Hermes` fo
 
 Windows itself remembers every program you run (for example in the `MuiCache` and Compatibility Assistant registry keys, or per-app audio settings). Those entries hold the executable's path, not your settings or tokens, and are not the app's to remove.
 
-Gateway tokens are encrypted with Windows DPAPI, so a copied folder does not carry usable credentials to another Windows account: you enter the token again there.
+As in upstream Hermes Desktop, gateway tokens and sign-ins are stored in `data` without encryption, so a copy of the folder carries them too. Keep that in mind before copying or sharing it.
 
 ## Upgrading
 
-Keep your `data` folder. Either extract the new ZIP over the existing folder, or extract it to a new folder and move `data` into it. Explorer's "Extract All" creates a new folder named after the ZIP, so the second case is the usual one.
+Unpack each new version to a new folder and connect to your gateways again. Carrying a `data` folder over from an earlier version is not supported: upstream changes how it stores data between releases (v0.23.0, for example, moved saved gateways to a new store), and this project does not test those migrations. Moving `data` into the new folder may work, but if anything misbehaves, start again from a fresh folder.
 
 ## Gateways
 
 Your Hermes must expose its gateway to this machine, for example over your LAN, a VPN or Tailscale; see the upstream [documentation](https://hermes-agent.nousresearch.com/docs/) for gateway setup. You can add or change gateways later under **Settings → Gateways**.
 
-Run the same Hermes version on the server as the package was built from: `v0.22.7-r1` needs Hermes `v0.22.7` (the **Built from** badge in the README shows the current one). Upgrade the server whenever you upgrade the package. The desktop and the gateway speak a protocol that changes between releases, and a mismatch fails on ordinary use, for example every prompt failing with `invalid params for prompt.submit: ... Extra inputs are not permitted` and a hint to run `hermes update`.
+Run the same Hermes version on the server as the package was built from: `v0.23.1-r1` needs Hermes `v0.23.1` (the **Built from** badge in the README shows the current one). Upgrade the server whenever you upgrade the package. The desktop and the gateway speak a protocol that changes between releases, and a mismatch fails on ordinary use, for example every prompt failing with `invalid params for prompt.submit: ... Extra inputs are not permitted` and a hint to run `hermes update`.
 
 ## No local install
 

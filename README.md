@@ -64,7 +64,7 @@ Two upstream issues describe the gap, and this project treats them differently:
 > [!WARNING]
 > Run the same Hermes version on your server as the package was built from (the **Built from** badge above). See [Gateways](docs/usage.md#gateways).
 
-Settings, tokens and logs stay in a `data` folder next to the executable: delete the folder to uninstall, and keep `data` when you upgrade. Details in [Using the package](docs/usage.md).
+Settings, tokens and logs stay in a `data` folder next to the executable: delete the folder to uninstall. Each new version starts from a fresh folder. Details in [Using the package](docs/usage.md).
 
 ## How it is built
 
@@ -80,7 +80,7 @@ docs/                  how to use the package, build it and update upstream
 
 On every build, a `windows-latest` runner checks out the pinned upstream commit, applies `patches/` in order, builds `apps/desktop` with upstream's remote-only `light` variant and packages the unpacked app as a ZIP.
 
-Package versions follow upstream: `v0.22.7-r1` is the first revision of this project built from Hermes `v0.22.7`. The **Built from** badge above reads the pinned tag straight from [`upstream.lock`](upstream.lock).
+Package versions follow upstream: `v0.23.1-r1` is the first revision of this project built from Hermes `v0.23.1`. The **Built from** badge above reads the pinned tag straight from [`upstream.lock`](upstream.lock).
 
 ### Design choices
 
@@ -94,7 +94,7 @@ Package versions follow upstream: `v0.22.7-r1` is the first revision of this pro
 > **You probably don't need to.** Ready-made packages are on the [Releases](https://github.com/henricos/hermes-desktop-portable/releases) page.
 
 - [Build on GitHub Actions in your fork](docs/build-github-actions.md): nothing to install on your machine.
-- [Build locally on Windows](docs/build-local.md): needs Git for Windows and Node.
+- [Build locally on Windows](docs/build-local.md): needs Git for Windows, Node and pnpm.
 - [Update to a newer Hermes release, or change the patches](docs/updating-upstream.md).
 
 With an AI coding agent, clone the repository and ask it, for example, to "build a package for Hermes v0.23.0"; [`AGENTS.md`](AGENTS.md) points it to these documents.

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Build the Windows x64 portable ZIP from the pinned upstream plus patches/.
 # This is the single build entry point: the GitHub Actions workflow runs it
-# as is. It must run on Windows (Git Bash), with the Node version upstream
-# pins; see docs/build-local.md.
+# as is. It must run on Windows (Git Bash), with the Node and pnpm versions
+# upstream pins; see docs/build-local.md.
 #
-#   scripts/build.sh [--version v0.22.7-r1]
+#   scripts/build.sh [--version v0.23.1-r1]
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -42,9 +42,19 @@ actual_node="$(node --version | tr -d 'v' | cut -d. -f1)"
 if [ "${wanted_node%%.*}" != "$actual_node" ]; then
   echo "warning: upstream pins Node $wanted_node, running Node $actual_node" >&2
 fi
+# Upstream refuses any pnpm but the one pm/lock.json pins (root preinstall).
+wanted_pnpm="$(cd "$upstream" && node -p 'require("./pm/lock.json").packages.pnpm.version')"
+actual_pnpm="$(pnpm --version 2>/dev/null || echo none)"
+if [ "$wanted_pnpm" != "$actual_pnpm" ]; then
+  echo "error: upstream pins pnpm $wanted_pnpm, found $actual_pnpm (npm install --global pnpm@$wanted_pnpm)" >&2
+  exit 1
+fi
 
 echo "==> Installing dependencies"
-(cd "$upstream" && npm ci)
+(cd "$upstream" && pnpm install --frozen-lockfile)
+# Electron's install no longer fetches its binary; upstream prepares it in an
+# explicit step before building, as its own CI does.
+(cd "$upstream" && node scripts/build/electron-runtime.mjs --source .)
 
 echo "==> Building apps/desktop (variant: light)"
 export HERMES_DESKTOP_VARIANT=light
@@ -56,11 +66,11 @@ unset HERMES_PAYLOAD_TAG HERMES_BUILD_COMMIT _HERMES_CHANNEL_REQUEST_JSON \
 # HEAD, which is the patched commit that exists only here. Record the pinned
 # upstream commit and tag instead, so About links to a real upstream commit.
 # On CI, GITHUB_SHA would otherwise be this repository's commit.
-(cd "$app" && GITHUB_SHA="$UPSTREAM_COMMIT" GITHUB_REF_NAME="$UPSTREAM_TAG" GITHUB_HEAD_REF= npm run build)
+(cd "$app" && GITHUB_SHA="$UPSTREAM_COMMIT" GITHUB_REF_NAME="$UPSTREAM_TAG" GITHUB_HEAD_REF= pnpm run build)
 # No --x64: an explicit arch flag stages native deps into a directory the
 # upstream source path rejects; the default arch (x64 on the runner) reuses
-# the deps that `npm run build` staged.
-(cd "$app" && npm run builder -- --win --dir --publish never \
+# the deps that `pnpm run build` staged.
+(cd "$app" && pnpm run builder --win --dir --publish never \
   "-c.extraMetadata.version=${UPSTREAM_TAG#v}")
 
 unpacked="$app/release/win-unpacked"

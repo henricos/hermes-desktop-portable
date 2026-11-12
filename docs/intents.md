@@ -28,16 +28,6 @@ Every intent below lists:
 
 **Obsolete when.** Upstream ships a portable mode that does all of the above.
 
-## `encrypted-tokens`: tokens are encrypted by default
-
-**Promise.** Gateway tokens in `data\` are encrypted with Windows DPAPI, so a copied folder does not carry usable credentials to another Windows account.
-
-**How.** `main.ts`, `secretStoragePolicy()`: on Windows, when no choice has been saved, start with encryption on.
-
-**Revisit on bump.** Changes to the secret-storage policy (`electron/secret-storage-policy.ts`) and to its default.
-
-**Obsolete when.** Upstream encrypts by default on Windows.
-
 ## `remote-only`: never install, run or offer a local Hermes
 
 **Promise.** The app only connects to Hermes gateways running elsewhere. It never downloads upstream's installer, never sets up Python, uv or Git, and never uses a Hermes already installed on the machine. The setup screen offers only **Connect to existing Hermes**. A few upstream options that need a local Hermes stay visible (see [No local install](usage.md#no-local-install)), but choosing one shows an error instead of installing.
@@ -76,3 +66,7 @@ Every intent below lists:
 **Revisit on bump.** Whether the light variant on Windows still lacks a self-updater, and where the external-update message lives.
 
 **Obsolete when.** Never, while this project publishes the package.
+
+## Dropped intents
+
+- `encrypted-tokens` (until v0.22.7): Windows defaulted to DPAPI-encrypted gateway tokens. From v0.23.0, upstream keeps saved gateways and sign-ins in a store shared with its Webapp (`electron/gateway-connections-store.ts`) that holds them unencrypted on purpose, so encrypting `connection.json` alone no longer protected anything. The package now matches upstream, and [`usage.md`](usage.md) says so.
